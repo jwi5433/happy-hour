@@ -2,7 +2,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Popup, ZoomControl } from 'react-leaflet';
+import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { happyHourVenues } from 'src/server/db/schema';
 import { InferSelectModel } from 'drizzle-orm';
@@ -17,6 +18,18 @@ interface MapComponentProps {
 const MapComponent = ({ className = '', restaurants = [] }: MapComponentProps) => {
   const center: [number, number] = [30.2672, -97.7431];
   const [isMounted, setIsMounted] = useState(false);
+
+  const austinBounds = L.latLngBounds([30.12, -97.95], [30.45, -97.55]);
+
+  const restaurantIcon = L.icon({
+    iconUrl:
+      'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-blue.png',
+    shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
+    iconSize: [25, 41],
+    iconAnchor: [12, 41],
+    popupAnchor: [1, -34],
+    shadowSize: [41, 41],
+  });
 
   useEffect(() => {
     setIsMounted(true);
@@ -51,6 +64,7 @@ const MapComponent = ({ className = '', restaurants = [] }: MapComponentProps) =
           <Marker
             key={restaurant.id}
             position={[Number(restaurant.latitude), Number(restaurant.longitude)]}
+            icon={restaurantIcon}
           >
             <Popup>
               <div className="max-w-xs">
