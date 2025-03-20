@@ -2,8 +2,8 @@
 
 import { useEffect, useState } from 'react';
 import HappyHourMap from '../components/Map';
-import { InferSelectModel } from 'drizzle-orm';
-import { happyHourVenues } from 'src/server/db/schema';
+import type { InferSelectModel } from 'drizzle-orm';
+import type { happyHourVenues } from 'src/server/db/schema';
 
 type Restaurant = InferSelectModel<typeof happyHourVenues>;
 
@@ -34,7 +34,7 @@ export default function HomePage() {
     }
   };
 
-    fetchRestaurants();
+    void fetchRestaurants();
   }, []);
 
   return (
