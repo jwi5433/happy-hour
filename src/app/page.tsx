@@ -12,17 +12,27 @@ export default function HomePage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchRestaurants = async () => {
-      try {
-        const response = await fetch('/api/venues');
-        const data = await response.json();
+  const fetchRestaurants = async () => {
+    try {
+      const response = await fetch('/api/venues');
+      const data = await response.json();
+
+      console.log('api response:', data);
+
+      if (Array.isArray(data)) {
+        setRestaurants(data);
+      } else if (data.restaurants && Array.isArray(data.restaurants)) {
         setRestaurants(data.restaurants);
-      } catch (error) {
-        console.error('Error fetching restaurants:', error);
-      } finally {
-        setLoading(false);
+      } else {
+        console.error('Unexpected response format:', data);
+        setRestaurants([]);
       }
-    };
+    } catch (error) {
+      console.error('Error fetching restaurants:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
     fetchRestaurants();
   }, []);

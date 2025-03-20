@@ -5,19 +5,16 @@ import { useState, useEffect } from 'react';
 import { MapContainer, TileLayer, ZoomControl } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
-import { happyHourVenues } from 'src/server/db/schema';
-import { InferSelectModel } from 'drizzle-orm';
+import { happyHourVenues, HappyHourVenue } from 'src/server/db/schema';
 
 import LocationButton from './map/controls/locationButton';
 import LocationTracker from './map/tracking/locationTracker';
 import SearchControl from './map/controls/searchControls';
 import { UserLocationMarker, RestaurantMarkers } from './map/markers/mapMarkers';
 
-type Restaurant = InferSelectModel<typeof happyHourVenues>;
-
 interface MapComponentProps {
   className?: string;
-  restaurants: Restaurant[];
+  restaurants: HappyHourVenue[];
 }
 
 const MapComponent = ({ className = '', restaurants = [] }: MapComponentProps) => {
@@ -41,10 +38,6 @@ const MapComponent = ({ className = '', restaurants = [] }: MapComponentProps) =
 
   const handleLocationRequest = () => {
     setLocationError(null);
-  };
-
-  const getDescription = (jsonField: any): string => {
-    return jsonField[0]?.description || '';
   };
 
 
@@ -83,7 +76,7 @@ const MapComponent = ({ className = '', restaurants = [] }: MapComponentProps) =
         />
         <LocationButton onLocationRequest={handleLocationRequest} />
         {userPosition && <UserLocationMarker position={userPosition} />}
-        <RestaurantMarkers restaurants={restaurants} getDescription={getDescription} />
+        <RestaurantMarkers restaurants={restaurants} />
       </MapContainer>
 
       {locationError && (
