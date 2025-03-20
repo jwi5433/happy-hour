@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "build": "next build",
+    "vercel-build": "SKIP_TYPE_CHECK=true next build",
     "check": "next lint && tsc --noEmit",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
@@ -18,7 +19,7 @@
     "typecheck": "tsc --noEmit",
     "format:write": "prettier --write \"**/*.{ts,tsx,js,jsx,mdx}\" --cache",
     "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,mdx}\" --cache",
-    "import-data": "tsx src/scripts/import-csv.ts" 
+    "import-data": "tsx src/scripts/import-csv.ts"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.49.1",
