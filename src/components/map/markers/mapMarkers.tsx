@@ -3,18 +3,15 @@
 
 import { Marker, Popup } from 'react-leaflet';
 import L from 'leaflet';
-import { happyHourVenues } from 'src/server/db/schema';
-import { InferSelectModel } from 'drizzle-orm';
-
-type Restaurant = InferSelectModel<typeof happyHourVenues>;
+import { happyHourVenues, HappyHourVenue } from 'src/server/db/schema';
+import { HappyHour, Deal } from 'src/types/happy-hour';
 
 interface UserLocationMarkerProps {
   position: [number, number]; 
 }
 
 interface RestaurantMarkersProps {
-  restaurants: Restaurant[];
-  getDescription: (jsonField: any) => string;
+  restaurants: HappyHourVenue[];
 }
 
 const userLocationIcon = L.icon({
@@ -51,10 +48,34 @@ export const UserLocationMarker: React.FC<UserLocationMarkerProps> = ({ position
 };
 
 
-export const RestaurantMarkers: React.FC<RestaurantMarkersProps> = ({
-  restaurants,
-  getDescription,
-}) => {
+export const RestaurantMarkers: React.FC<RestaurantMarkersProps> = ({ restaurants }) => {
+  const formatHappyHours = (happyHours: HappyHour[] | null) => {
+    if (!happyHours || happyHours.length === 0) return 'No happy hours listed';
+
+    const formattedHours = happyHours
+      .map((hour) => `${hour.day}: ${hour.start_time}-${hour.end_time}`)
+      .join(`,`);
+
+    return formattedHours;
+  };
+
+  const formatDeals = (deals: Deal[] | null) => {
+    if (!deals || deals.length == 0) return 'No deals listed';
+
+    const uniqueDeals = deals.filter(
+      (deal, index, self) =>
+        index ===
+        self.findIndex(
+          (d) => d.category === deal.category && d.name === deal.name && d.price === deal.price
+        )
+    );
+
+    const formattedDeals = uniqueDeals
+      .map((deal) => `${deal.category}: ${deal.name} (${deal.price})`)
+      .join(', ');
+
+    return formattedDeals;
+  };
   return (
     <>
       {restaurants.map((restaurant) => (
@@ -68,14 +89,55 @@ export const RestaurantMarkers: React.FC<RestaurantMarkersProps> = ({
               <h3 className="text-lg font-bold">{restaurant.name}</h3>
               {restaurant.address && <p className="mb-2 text-sm">{restaurant.address}</p>}
 
+              {/* Display website and social links if available */}
+              {(restaurant.websiteUrl ||
+                restaurant.instagramUrl ||
+                restaurant.yelpUrl ||
+                restaurant.googlemapsUrl) && (
+                <div className="mb-2 flex space-x-2">
+                  {restaurant.websiteUrl && (
+                    <a
+                      href={restaurant.websiteUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-sm text-blue-500 hover:text-blue-700"
+                    >
+                      Website
+                    </a>
+                  )}
+                  {restaurant.instagramUrl && (
+                    <a
+                      href={restaurant.instagramUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-sm text-blue-500 hover:text-blue-700"
+                    >
+                      Instagram
+                    </a>
+                  )}
+                  {restaurant.googlemapsUrl && (
+                    <a
+                      href={restaurant.googlemapsUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-sm text-blue-500 hover:text-blue-700"
+                    >
+                      Directions
+                    </a>
+                  )}
+                </div>
+              )}
+
               <div className="mb-2">
                 <h4 className="text-sm font-semibold">Happy Hour:</h4>
-                <p className="text-sm">{getDescription(restaurant.timeFrames)}</p>
+                <p className="text-sm">
+                  {formatHappyHours(restaurant.happyHours as unknown as HappyHour[])}
+                </p>
               </div>
 
               <div className="mb-2">
                 <h4 className="text-sm font-semibold">Deals:</h4>
-                <p className="text-sm">{getDescription(restaurant.deals)}</p>
+                <p className="text-sm">{formatDeals(restaurant.deals as unknown as Deal[])}</p>
               </div>
             </div>
           </Popup>

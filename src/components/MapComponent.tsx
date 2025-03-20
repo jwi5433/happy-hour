@@ -10,6 +10,7 @@ import { InferSelectModel } from 'drizzle-orm';
 
 import LocationButton from './map/controls/locationButton';
 import LocationTracker from './map/tracking/locationTracker';
+import SearchControl from './map/controls/searchControls';
 import { UserLocationMarker, RestaurantMarkers } from './map/markers/mapMarkers';
 
 type Restaurant = InferSelectModel<typeof happyHourVenues>;
@@ -46,6 +47,7 @@ const MapComponent = ({ className = '', restaurants = [] }: MapComponentProps) =
     return jsonField[0]?.description || '';
   };
 
+
   if (!isMounted) {
     return (
       <div className={`h-[70vh] w-full ${className} flex items-center justify-center`}>
@@ -74,6 +76,7 @@ const MapComponent = ({ className = '', restaurants = [] }: MapComponentProps) =
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
         <ZoomControl position="topright" />
+        <SearchControl restaurants={restaurants} />
         <LocationTracker
           onLocationFound={handleLocationFound}
           onLocationError={handleLocationError}
