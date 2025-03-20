@@ -59,23 +59,37 @@ export const RestaurantMarkers: React.FC<RestaurantMarkersProps> = ({ restaurant
     return formattedHours;
   };
 
-  const formatDeals = (deals: Deal[] | null) => {
-    if (!deals || deals.length == 0) return 'No deals listed';
+const formatDeals = (deals: Deal[] | null) => {
+  if (!deals || deals.length == 0) return 'No deals listed';
 
-    const uniqueDeals = deals.filter(
-      (deal, index, self) =>
-        index ===
-        self.findIndex(
-          (d) => d.category === deal.category && d.name === deal.name && d.price === deal.price
-        )
-    );
+  const uniqueDeals = deals.filter(
+    (deal, index, self) =>
+      index ===
+      self.findIndex(
+        (d) => d.category === deal.category && d.name === deal.name && d.price === deal.price
+      )
+  );
 
-    const formattedDeals = uniqueDeals
-      .map((deal) => `${deal.category}: ${deal.name} (${deal.price})`)
-      .join(', ');
+  const formattedDeals = uniqueDeals
+    .map((deal) => {
+      let displayPrice = deal.price;
 
-    return formattedDeals;
-  };
+      if (typeof deal.price === 'string' && deal.price.includes('%')) {
+        const percentMatch = deal.price.match(/(\d+)%/);
+        if (percentMatch && percentMatch[1]) {
+          const percentValue = parseInt(percentMatch[1], 10);
+          if (percentValue > 99) {
+            displayPrice = 'Special deal';
+          }
+        }
+      }
+
+      return `${deal.category}: ${deal.name} (${displayPrice})`;
+    })
+    .join(', ');
+
+  return formattedDeals;
+};
   return (
     <>
       {restaurants.map((restaurant) => (

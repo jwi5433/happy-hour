@@ -39,8 +39,7 @@ const MapComponent = ({ className = '', restaurants = [] }: MapComponentProps) =
   const handleLocationRequest = () => {
     setLocationError(null);
   };
-
-
+      
   if (!isMounted) {
     return (
       <div className={`h-[70vh] w-full ${className} flex items-center justify-center`}>
