@@ -1,9 +1,7 @@
-// src/components/MapComponent.tsx
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { MapContainer, TileLayer, ZoomControl } from 'react-leaflet';
-import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { happyHourVenues, HappyHourVenue } from 'src/server/db/schema';
 
@@ -19,14 +17,8 @@ interface MapComponentProps {
 
 const MapComponent = ({ className = '', restaurants = [] }: MapComponentProps) => {
   const center: [number, number] = [30.2672, -97.7431];
-  const [isMounted, setIsMounted] = useState(false);
-
   const [userPosition, setUserPosition] = useState<[number, number] | null>(null);
   const [locationError, setLocationError] = useState<string | null>(null);
-
-  useEffect(() => {
-    setIsMounted(true);
-  }, []);
 
   const handleLocationFound = (position: [number, number]) => {
     setUserPosition(position);
@@ -39,14 +31,6 @@ const MapComponent = ({ className = '', restaurants = [] }: MapComponentProps) =
   const handleLocationRequest = () => {
     setLocationError(null);
   };
-      
-  if (!isMounted) {
-    return (
-      <div className={`h-[70vh] w-full ${className} flex items-center justify-center`}>
-        Loading map...
-      </div>
-    );
-  }
 
   return (
     <div className={`h-[70vh] w-full ${className}`}>
@@ -79,7 +63,7 @@ const MapComponent = ({ className = '', restaurants = [] }: MapComponentProps) =
       </MapContainer>
 
       {locationError && (
-        <div className='mt-2" role="alert rounded border border-red-400 bg-red-100 px-4 py-3 text-red-700'>
+        <div className="absolute bottom-4 left-4 right-4 z-40 rounded border border-red-400 bg-red-100 px-4 py-3 text-red-700">
           <p>{locationError}</p>
         </div>
       )}

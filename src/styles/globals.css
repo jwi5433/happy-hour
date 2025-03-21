@@ -1,3 +1,83 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Dark theme popup styles for Leaflet */
+
+/* Make popup background and tip dark */
+.dark-theme-popup .leaflet-popup-content-wrapper {
+  background-color: #1f2937; /* gray-800 */
+  color: #e5e7eb; /* gray-200 */
+  border-radius: 0.5rem;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3), 0 4px 6px -4px rgba(0, 0, 0, 0.3);
+}
+
+.dark-theme-popup .leaflet-popup-tip {
+  background-color: #1f2937; /* gray-800 */
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+/* Make popup content have no margin padding */
+.dark-theme-popup .leaflet-popup-content {
+  margin: 0;
+  padding: 0;
+  min-width: 200px;
+  max-width: 280px;
+}
+
+/* Make popups taller when content will be scrolled */
+.dark-theme-popup .leaflet-popup {
+  max-height: 80vh;
+}
+
+/* Consistent scrollbar styling */
+.scrollbar-thin::-webkit-scrollbar {
+  width: 4px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-track {
+  background: #374151; /* gray-700 */
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb {
+  background-color: #6b7280; /* gray-500 */
+  border-radius: 10px;
+}
+
+/* Firefox scrollbar support */
+.scrollbar-thin {
+  scrollbar-width: thin;
+  scrollbar-color: #6b7280 #374151; /* thumb and track colors */
+}
+
+/* Custom background color for the links section */
+.bg-gray-750 {
+  background-color: #283141;
+}
+
+/* Transition for smooth appearance */
+.leaflet-popup {
+  transition: opacity 0.3s ease;
+}
+
+/* Style for links */
+.dark-theme-popup a {
+  transition: color 0.2s ease;
+}
+
+/* Dark error message */
+.dark-error {
+  background-color: rgba(185, 28, 28, 0.1); /* red-700 with opacity */
+  border-color: rgba(220, 38, 38, 0.5); /* red-600 with opacity */
+  color: #ef4444; /* red-500 */
+}
+
+/* Ensure border radius on all internal elements */
+.dark-theme-popup .rounded-lg {
+  overflow: hidden;
+}
