@@ -34,8 +34,6 @@ const restaurantIcon = L.icon({
   shadowSize: [41, 41],
 });
 
-// Tabs component for showing deals
-// Improved DealsDisplay component with better filtering and styling
 const DealsDisplay = ({ deals }: { deals: Deal[] | null }) => {
   const [activeTab, setActiveTab] = useState<'drinks' | 'food'>('drinks');
 
@@ -43,26 +41,19 @@ const DealsDisplay = ({ deals }: { deals: Deal[] | null }) => {
     return <p className="text-sm text-gray-400">No deals listed</p>;
   }
 
-  // Enhanced filter to catch more edge cases with unrealistic deals
   const validDeals = deals.filter((deal) => {
-    // Skip deals with empty or null properties
     if (!deal.name || !deal.price) return false;
     
-    // Check for percentage deals
     if (typeof deal.price === 'string') {
-      // Match both formats: "50% off" and "50%"
       const percentMatch = deal.price.match(/(\d+)%/);
       if (percentMatch && percentMatch[1]) {
         const percentValue = parseInt(percentMatch[1], 10);
         
-        // Filter out unrealistic percentage discounts (over 80%)
-        // You could adjust this threshold as needed
         if (percentValue > 80) {
           return false;
         }
       }
       
-      // Also filter out any "FREE" or "100% off" deals that might slip through
       if (
         deal.price.toLowerCase().includes('free') || 
         deal.price.toLowerCase().includes('100% off')
@@ -74,12 +65,10 @@ const DealsDisplay = ({ deals }: { deals: Deal[] | null }) => {
     return true;
   });
 
-  // If all deals were filtered out
   if (validDeals.length === 0) {
     return <p className="text-sm text-gray-400">No valid deals available</p>;
   }
 
-  // Remove duplicates with more comprehensive comparison
   const uniqueDeals = validDeals.filter(
     (deal, index, self) =>
       index ===
@@ -91,13 +80,11 @@ const DealsDisplay = ({ deals }: { deals: Deal[] | null }) => {
       )
   );
 
-  // Group deals into Drinks and Food
   const drinkDeals = uniqueDeals.filter((deal) => deal.category !== 'Food');
   const foodDeals = uniqueDeals.filter((deal) => deal.category === 'Food');
 
   return (
     <div className="mt-2">
-      {/* Sleeker Tab Design */}
       <div className="flex border-b border-gray-600 mb-2">
         <button
           className={`px-3 py-1.5 text-xs font-medium transition-colors duration-150 rounded-t-md ${
@@ -120,8 +107,6 @@ const DealsDisplay = ({ deals }: { deals: Deal[] | null }) => {
           Food ({foodDeals.length})
         </button>
       </div>
-
-      {/* Tab content with scrolling for long lists */}
       {activeTab === 'drinks' && drinkDeals.length > 0 && (
         <div className="rounded bg-gray-700 p-2 shadow-md">
           <div className="max-h-32 overflow-y-auto pr-1 scrollbar-thin scrollbar-thumb-gray-500 scrollbar-track-gray-800">
@@ -167,12 +152,9 @@ const DealsDisplay = ({ deals }: { deals: Deal[] | null }) => {
   );
 };
 
-// Helper function with fixed type errors
-// Helper function with all TypeScript errors fixed
 const formatHappyHours = (happyHours: HappyHour[] | null): string => {
   if (!happyHours || happyHours.length === 0) return 'No happy hours listed';
 
-  // Define day order for sorting
   const dayOrder: Record<string, number> = {
     Monday: 1,
     Tuesday: 2,
@@ -183,7 +165,6 @@ const formatHappyHours = (happyHours: HappyHour[] | null): string => {
     Sunday: 7,
   };
 
-  // Group by time slot
   const timeGroups: Record<string, string[]> = {};
 
   happyHours.forEach((hour) => {
@@ -193,27 +174,21 @@ const formatHappyHours = (happyHours: HappyHour[] | null): string => {
     if (!timeGroups[timeKey]) {
       timeGroups[timeKey] = [];
     }
-    // Fixed line 210 - use non-null assertion
     if (hour.day) {
       timeGroups[timeKey].push(hour.day);
     }
   });
 
-  // Format each time group with fixed types
   const formattedGroups = Object.entries(timeGroups).map(([timeSlot, days]) => {
-    // Sort days by order - using nullish coalescing for safety
     days.sort((a, b) => {
-      // Fixed lines 217-218
       const aOrder = typeof a === 'string' ? (dayOrder[a] ?? 0) : 0;
       const bOrder = typeof b === 'string' ? (dayOrder[b] ?? 0) : 0;
       return aOrder - bOrder;
     });
 
-    // Find ranges with fixed types
     const ranges: string[] = [];
 
     if (days.length === 1) {
-      // If only one day, no need for range processing
       const day = days[0];
       if (day) {
         ranges.push(day);
@@ -225,39 +200,28 @@ const formatHappyHours = (happyHours: HappyHour[] | null): string => {
       for (let i = 1; i < days.length; i++) {
         const current: string | undefined = days[i];
         
-        // Fixed null safety
         if (!prev || !current) continue;
-        
-        // Fixed lines 217-218
+
         const prevDayOrder: number = typeof prev === 'string' ? (dayOrder[prev] ?? 0) : 0;
         const currentDayOrder: number = typeof current === 'string' ? (dayOrder[current] ?? 0) : 0;
 
-        // Check if days are consecutive
         if (currentDayOrder - prevDayOrder === 1) {
-          // Current day is consecutive with previous
           prev = current;
 
-          // If this is the last day, complete the range
           if (i === days.length - 1) {
-            // Fixed line 227
             if (rangeStart && prev) {
               ranges.push(rangeStart === prev ? rangeStart : `${rangeStart}-${prev}`);
             }
           }
         } else {
-          // Not consecutive, end the current range
-          // Fixed line 231
           if (rangeStart && prev) {
             ranges.push(rangeStart === prev ? rangeStart : `${rangeStart}-${prev}`);
           }
 
-          // Start a new range
           rangeStart = current;
           prev = current;
 
-          // If this is the last day, add as a single day
           if (i === days.length - 1) {
-            // Fixed line 239
             if (current) {
               ranges.push(current);
             }
@@ -266,11 +230,9 @@ const formatHappyHours = (happyHours: HappyHour[] | null): string => {
       }
     }
 
-    // Join ranges with comma and return formatted time slot
     return `${ranges.join(', ')}: ${timeSlot}`;
   });
 
-  // Join all time groups with semicolon
   return formattedGroups.join('; ');
 };
 
@@ -297,17 +259,13 @@ export const RestaurantMarkers: React.FC<RestaurantMarkersProps> = ({ restaurant
         >
           <Popup className="dark-theme-popup">
             <div className="max-w-xs overflow-hidden rounded-lg bg-gray-800 text-gray-200 shadow-lg">
-              {/* Header section */}
               <div className="bg-gray-900 p-3">
                 <h3 className="text-lg font-bold text-white">{restaurant.name}</h3>
                 {restaurant.address && (
                   <p className="mb-2 text-sm text-gray-400">{restaurant.address}</p>
                 )}
               </div>
-
-              {/* Main content with scrollable sections */}
               <div className="p-3">
-                {/* Happy Hours - Enhanced with better scrolling */}
                 <div className="mb-3">
                   <h4 className="text-sm font-semibold text-gray-300">Happy Hour:</h4>
                   <div className="scrollbar-thin scrollbar-thumb-gray-500 scrollbar-track-gray-800 max-h-24 overflow-y-auto pr-1">
@@ -328,14 +286,12 @@ export const RestaurantMarkers: React.FC<RestaurantMarkersProps> = ({ restaurant
                   </div>
                 </div>
 
-                {/* Deals with tabs */}
                 <div>
                   <h4 className="text-sm font-semibold text-gray-300">Deals:</h4>
                   <DealsDisplay deals={restaurant.deals as unknown as Deal[]} />
                 </div>
               </div>
 
-              {/* Links section at the bottom with icons */}
               {(restaurant.websiteUrl ||
                 restaurant.instagramUrl ||
                 restaurant.yelpUrl ||
@@ -374,7 +330,6 @@ export const RestaurantMarkers: React.FC<RestaurantMarkersProps> = ({ restaurant
                         className="p-1 text-blue-400 hover:text-blue-300"
                         title="Instagram"
                       >
-                        {/* Instagram Camera Icon */}
                         <svg
                           xmlns="http://www.w3.org/2000/svg"
                           fill="none"
@@ -396,7 +351,6 @@ export const RestaurantMarkers: React.FC<RestaurantMarkersProps> = ({ restaurant
                         className="p-1 text-blue-400 hover:text-blue-300"
                         title="Directions"
                       >
-                        {/* Google Maps Icon - Matching style */}
                         <svg
                           xmlns="http://www.w3.org/2000/svg"
                           fill="none"
@@ -427,7 +381,6 @@ export const RestaurantMarkers: React.FC<RestaurantMarkersProps> = ({ restaurant
                         className="p-1 text-blue-400 hover:text-blue-300"
                         title="Yelp"
                       >
-                        {/* Simple Star Icon for Yelp - Matching Style */}
                         <svg
                           xmlns="http://www.w3.org/2000/svg"
                           fill="none"

@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { MapContainer, TileLayer, ZoomControl } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
-import { happyHourVenues, HappyHourVenue } from 'src/server/db/schema';
+import { HappyHourVenue } from 'src/server/db/schema';
 
 import LocationButton from './map/controls/locationButton';
 import LocationTracker from './map/tracking/locationTracker';
@@ -14,31 +14,34 @@ import { UserLocationMarker, RestaurantMarkers } from './map/markers/mapMarkers'
 interface MapComponentProps {
   className?: string;
   restaurants: HappyHourVenue[];
+  loading?: boolean;
+  initialUserPosition?: [number, number] | null;
 }
 
-const MapComponent = ({ className = '', restaurants = [] }: MapComponentProps) => {
-  const center: [number, number] = [30.2672, -97.7431];
-  const [userPosition, setUserPosition] = useState<[number, number] | null>(null);
+const MapComponent = ({
+  className = '',
+  restaurants = [],
+  loading = false,
+  initialUserPosition = null,
+}: MapComponentProps) => {
+  const defaultCenter: [number, number] = [30.2672, -97.7431]; // Austin coordinates
+  const [userPosition, setUserPosition] = useState<[number, number] | null>(initialUserPosition);
   const [locationError, setLocationError] = useState<string | null>(null);
   const [visibleRestaurants, setVisibleRestaurants] = useState<HappyHourVenue[]>([]);
+  const [mapCenter, setMapCenter] = useState<[number, number]>(
+    initialUserPosition || defaultCenter
+  );
+  const [mapKey, setMapKey] = useState<number>(0);
 
-  // Request location on app load
+  // Update map center when initialUserPosition changes
   useEffect(() => {
-    if ('geolocation' in navigator) {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          const { latitude, longitude } = position.coords;
-          setUserPosition([latitude, longitude]);
-        },
-        (error) => {
-          console.log('Location permission not granted');
-        },
-        { timeout: 5000 }
-      );
+    if (initialUserPosition) {
+      setUserPosition(initialUserPosition);
+      setMapCenter(initialUserPosition);
+      setMapKey((prev) => prev + 1); // Force re-render of MapContainer
     }
-  }, []);
+  }, [initialUserPosition]);
 
-  // Initialize with a small set of restaurants for faster initial load
   useEffect(() => {
     if (restaurants.length > 0) {
       setVisibleRestaurants(restaurants.slice(0, 50));
@@ -47,6 +50,7 @@ const MapComponent = ({ className = '', restaurants = [] }: MapComponentProps) =
 
   const handleLocationFound = (position: [number, number]) => {
     setUserPosition(position);
+    setMapCenter(position);
   };
 
   const handleLocationError = (errorMessage: string) => {
@@ -60,7 +64,8 @@ const MapComponent = ({ className = '', restaurants = [] }: MapComponentProps) =
   return (
     <div className={`h-[70vh] w-full ${className}`}>
       <MapContainer
-        center={userPosition || center}
+        key={mapKey}
+        center={mapCenter}
         zoom={13}
         style={{ height: '100%', width: '100%' }}
         scrollWheelZoom={true}
@@ -85,10 +90,8 @@ const MapComponent = ({ className = '', restaurants = [] }: MapComponentProps) =
         <LocationButton onLocationRequest={handleLocationRequest} />
         {userPosition && <UserLocationMarker position={userPosition} />}
 
-        {/* Only show the filtered restaurants */}
         <RestaurantMarkers restaurants={visibleRestaurants} />
 
-        {/* Use the zoom filter component */}
         <ZoomFilterControl
           restaurants={restaurants}
           setVisibleRestaurants={setVisibleRestaurants}
