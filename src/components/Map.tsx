@@ -15,8 +15,16 @@ interface MapProps {
   className?: string;
   restaurants: Restaurant[];
   loading?: boolean;
+  initialUserPosition?: [number, number] | null;
 }
 
-export default function Map({ className = '', restaurants = [], loading = false }: MapProps) {
-  return <MapComponent className={className} restaurants={restaurants} />;
+export default function Map({ className = '', restaurants = [], loading = false, initialUserPosition= null }: MapProps) {
+  return (
+    <MapComponent
+      className={className}
+      restaurants={restaurants}
+      loading={loading}
+      initialUserPosition={initialUserPosition}
+    />
+  );
 }

@@ -12,28 +12,19 @@ export default function HomePage() {
   const [loading, setLoading] = useState(true);
   const [userPosition, setUserPosition] = useState<[number, number] | null>(null);
 
-  // Request location immediately when component mounts
   useEffect(() => {
-    // This should trigger the browser permission prompt
     if ('geolocation' in navigator) {
       navigator.geolocation.getCurrentPosition(
         (position) => {
-          const { latitude, longitude } = position.coords;
-          setUserPosition([latitude, longitude]);
+          setUserPosition([position.coords.latitude, position.coords.longitude]);
         },
         (error) => {
-          console.log('Location permission not granted:', error.message);
-        },
-        {
-          enableHighAccuracy: true,
-          timeout: 5000,
-          maximumAge: 0,
+          console.log('Location error:', error.message);
         }
       );
     }
   }, []);
 
-  // Fetch restaurant data
   useEffect(() => {
     const fetchRestaurants = async () => {
       try {
@@ -64,6 +55,7 @@ export default function HomePage() {
         restaurants={restaurants}
         loading={loading}
         className="h-full w-full"
+        initialUserPosition={userPosition}
       />
     </main>
   );

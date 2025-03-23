@@ -1,11 +1,11 @@
-export type HappyHour = {
-  day: string;
-  start_time: string;
-  end_time: string;
-};
+export interface HappyHour {
+  day: string | null;
+  start_time: string | null;
+  end_time: string | null;
+}
 
-export type Deal = {
-  category: string;
-  name: string;
-  price: string;
-};
+export interface Deal {
+  name: string | null;
+  price: string | null;
+  category?: string | null;
+}

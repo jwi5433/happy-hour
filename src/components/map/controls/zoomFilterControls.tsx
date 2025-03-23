@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { useMap } from 'react-leaflet';
 import { HappyHourVenue } from 'src/server/db/schema';
 
@@ -16,9 +16,12 @@ const ZoomFilterControl = ({
   userPosition,
 }: ZoomFilterControlProps) => {
   const map = useMap();
+  const isProcessing = useRef(false);
 
   useEffect(() => {
     const filterRestaurants = () => {
+      if (isProcessing.current) return;
+      isProcessing.current = true;
       const zoom = map.getZoom();
       const bounds = map.getBounds();
 
@@ -63,6 +66,10 @@ const ZoomFilterControl = ({
       } else {
         setVisibleRestaurants(filtered);
       }
+
+      setTimeout(() => {
+        isProcessing.current = false;
+      }, 100);
     };
 
     map.on('zoomend', filterRestaurants);

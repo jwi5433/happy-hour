@@ -12,7 +12,16 @@ const LocationButton: React.FC<LocationButtonProps> = ({ onLocationRequest }) =>
   const map = useMap();
 
   useEffect(() => {
-    // Create a custom control
+    setTimeout(() => {
+      map.locate({
+        setView: true,
+        maxZoom: 16,
+        enableHighAccuracy: true,
+      });
+    }, 500); 
+  }, [map]);
+
+  useEffect(() => {
     const LocationControl = L.Control.extend({
       options: {
         position: 'topright',
@@ -39,9 +48,11 @@ const LocationButton: React.FC<LocationButtonProps> = ({ onLocationRequest }) =>
         L.DomEvent.on(button, 'click', function (e) {
           L.DomEvent.preventDefault(e);
           onLocationRequest();
+
           map.locate({
             setView: true,
             maxZoom: 16,
+            enableHighAccuracy: true,
           });
         });
 
@@ -49,11 +60,9 @@ const LocationButton: React.FC<LocationButtonProps> = ({ onLocationRequest }) =>
       },
     });
 
-    // Add the control to the map
     const locationControl = new LocationControl();
     locationControl.addTo(map);
 
-    // Cleanup function
     return () => {
       if (locationControl) {
         locationControl.remove();
@@ -61,7 +70,7 @@ const LocationButton: React.FC<LocationButtonProps> = ({ onLocationRequest }) =>
     };
   }, [map, onLocationRequest]);
 
-  return null; // The component doesn't render anything directly
+  return null;
 };
 
 export default LocationButton;
