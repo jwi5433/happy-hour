@@ -50,7 +50,7 @@ export default function HomePage() {
   }, []);
 
   return (
-    <main className="h-screen w-screen">
+    <main className="h-screen w-screen overflow-hidden">
       <HappyHourMap
         restaurants={restaurants}
         loading={loading}

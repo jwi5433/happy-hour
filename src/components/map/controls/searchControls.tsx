@@ -10,7 +10,7 @@ type Restaurant = InferSelectModel<typeof happyHourVenues>;
 
 interface SearchControlProps {
   restaurants: Restaurant[];
-  onSearchResults?: (results: Restaurant[]) => void; 
+  onSearchResults?: (results: Restaurant[]) => void;
 }
 
 const SearchControl: React.FC<SearchControlProps> = ({ restaurants, onSearchResults }) => {
@@ -20,7 +20,6 @@ const SearchControl: React.FC<SearchControlProps> = ({ restaurants, onSearchResu
   const [searchTerm, setSearchTerm] = useState('');
   const [matches, setMatches] = useState<Restaurant[]>([]);
   const [showResults, setShowResults] = useState(false);
-
 
   const inputRef = useRef<HTMLInputElement>(null);
   const resultsRef = useRef<HTMLDivElement>(null);
@@ -115,7 +114,7 @@ const SearchControl: React.FC<SearchControlProps> = ({ restaurants, onSearchResu
     <div className="leaflet-top leaflet-left" style={{ marginTop: '10px', marginLeft: '10px' }}>
       <div className="leaflet-control">
         <div
-          className={`flex items-center rounded-md bg-white shadow-md transition-all duration-300 ease-in-out ${isExpanded ? 'w-64' : 'w-10'} relative overflow-visible`}
+          className={`flex items-center rounded-md bg-white shadow-md transition-all duration-300 ease-in-out ${isExpanded ? 'w-full sm:w-64' : 'w-10'} relative overflow-visible`}
         >
           <button
             onClick={toggleSearch}

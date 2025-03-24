@@ -12,16 +12,6 @@ const LocationButton: React.FC<LocationButtonProps> = ({ onLocationRequest }) =>
   const map = useMap();
 
   useEffect(() => {
-    setTimeout(() => {
-      map.locate({
-        setView: true,
-        maxZoom: 16,
-        enableHighAccuracy: true,
-      });
-    }, 500); 
-  }, [map]);
-
-  useEffect(() => {
     const LocationControl = L.Control.extend({
       options: {
         position: 'topright',

@@ -75,7 +75,7 @@ const AiChat: React.FC<AiChatProps> = ({ isOpen, onClose }) => {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed bottom-0 right-0 z-[1000] flex h-96 w-96 flex-col rounded-t-lg bg-white shadow-lg">
+    <div className="fixed bottom-0 right-0 z-[1000] flex h-96 w-full flex-col rounded-t-lg bg-white shadow-lg md:w-96">
       <div className="flex items-center justify-between rounded-t-lg bg-blue-600 p-3 font-semibold text-white">
         <span>AI Assistant</span>
         <button onClick={onClose} className="text-white hover:text-gray-200">

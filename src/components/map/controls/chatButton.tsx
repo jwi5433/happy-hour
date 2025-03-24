@@ -34,8 +34,9 @@ const ChatButton: React.FC<ChatButtonProps> = ({ onClick }) => {
         button.style.display = 'flex';
         button.style.alignItems = 'center';
         button.style.justifyContent = 'center';
-        button.style.width = '40px';
-        button.style.height = '40px';
+        button.style.width = '44px';
+        button.style.height = '44px';
+        button.style.marginBottom = '10px';
         button.style.backgroundColor = '#2563eb';
         button.style.color = 'white';
         button.style.borderRadius = '9999px';

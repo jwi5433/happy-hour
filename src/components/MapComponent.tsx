@@ -50,7 +50,15 @@ const MapComponent = ({
 
   const handleLocationFound = (position: [number, number]) => {
     setUserPosition(position);
-    setMapCenter(position);
+
+    const [lat, lng] = position;
+    const isInAustin = lat > 30.05 && lat < 30.55 && lng > -98.05 && lng < -97.45;
+
+    if (isInAustin) {
+      setMapCenter(position);
+    } else {
+      console.log('User location is outside Austin area');
+    }
   };
 
   const handleLocationError = (errorMessage: string) => {
@@ -63,54 +71,49 @@ const MapComponent = ({
 
   return (
     <>
-    <div className={`h-[70vh] w-full ${className} relative`}>
-      <MapContainer
-        key={mapKey}
-        center={mapCenter}
-        zoom={13}
-        style={{ height: '100%', width: '100%' }}
-        scrollWheelZoom={true}
-        maxBounds={[
-          [30.05, -98.05],
-          [30.55, -97.45],
-        ]}
-        minZoom={11}
-        maxBoundsViscosity={0.8}
-        zoomControl={false}
-      >
-        <TileLayer
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-        />
-        <ZoomControl position="topright" />
-        <SearchControl restaurants={restaurants} />
-        <LocationTracker
-          onLocationFound={handleLocationFound}
-          onLocationError={handleLocationError}
-        />
-        <LocationButton onLocationRequest={handleLocationRequest} />
-        {userPosition && <UserLocationMarker position={userPosition} />}
+      <div className={`h-[70vh] w-full ${className} relative`}>
+        <MapContainer
+          key={mapKey}
+          center={mapCenter}
+          zoom={13}
+          style={{ height: '100%', width: '100%' }}
+          scrollWheelZoom={true}
+          maxBounds={undefined}
+          minZoom={11}
+          maxBoundsViscosity={0.8}
+          zoomControl={false}
+        >
+          <TileLayer
+            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+          />
+          <ZoomControl position="topright" />
+          <SearchControl restaurants={restaurants} />
+          <LocationTracker
+            onLocationFound={handleLocationFound}
+            onLocationError={handleLocationError}
+          />
+          <LocationButton onLocationRequest={handleLocationRequest} />
+          {userPosition && <UserLocationMarker position={userPosition} />}
 
-        <RestaurantMarkers restaurants={visibleRestaurants} />
+          <RestaurantMarkers restaurants={visibleRestaurants} />
 
-        <ZoomFilterControl
-          restaurants={restaurants}
-          setVisibleRestaurants={setVisibleRestaurants}
-          userPosition={userPosition}
-        />
+          <ZoomFilterControl
+            restaurants={restaurants}
+            setVisibleRestaurants={setVisibleRestaurants}
+            userPosition={userPosition}
+          />
 
-        <ChatButton onClick={() => setIsChatOpen(true)} />
-      </MapContainer>
+          <ChatButton onClick={() => setIsChatOpen(true)} />
+        </MapContainer>
 
-  
-
-      {locationError && (
-        <div className="absolute bottom-4 left-4 right-4 z-40 rounded border border-red-400 bg-red-100 px-4 py-3 text-red-700">
-          <p>{locationError}</p>
-        </div>
-      )}
-    </div>
-    <AiChat isOpen={isChatOpen} onClose={() => setIsChatOpen(false)} />
+        {locationError && (
+          <div className="absolute bottom-4 left-4 right-4 z-40 rounded border border-red-400 bg-red-100 px-4 py-3 text-red-700">
+            <p>{locationError}</p>
+          </div>
+        )}
+      </div>
+      <AiChat isOpen={isChatOpen} onClose={() => setIsChatOpen(false)} />
     </>
   );
 };
