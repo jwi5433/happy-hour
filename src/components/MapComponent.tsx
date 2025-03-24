@@ -22,7 +22,6 @@ interface MapComponentProps {
 const MapComponent = ({
   className = '',
   restaurants = [],
-  loading = false,
   initialUserPosition = null,
 }: MapComponentProps) => {
   const defaultCenter: [number, number] = [30.2672, -97.7431]; // Austin coordinates
