@@ -1,4 +1,3 @@
-// src/components/map/controls/ChatButton.tsx
 'use client';
 
 import { useMap } from 'react-leaflet';
@@ -42,10 +41,13 @@ const ChatButton: React.FC<ChatButtonProps> = ({ onClick }) => {
         button.style.borderRadius = '9999px';
 
         L.DomEvent.on(button, 'click', function (e) {
-          L.DomEvent.preventDefault(e);
           L.DomEvent.stopPropagation(e);
+          L.DomEvent.preventDefault(e);
           onClick();
         });
+
+        L.DomEvent.disableClickPropagation(container);
+        L.DomEvent.disableScrollPropagation(container);
 
         return container;
       },
@@ -53,7 +55,6 @@ const ChatButton: React.FC<ChatButtonProps> = ({ onClick }) => {
 
     controlRef.current = new ChatControl();
     map.addControl(controlRef.current);
-
     return () => {
       if (controlRef.current) {
         map.removeControl(controlRef.current);

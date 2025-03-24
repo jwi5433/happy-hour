@@ -9,7 +9,7 @@ import LocationTracker from './map/tracking/locationTracker';
 import SearchControl from './map/controls/searchControls';
 import ZoomFilterControl from './map/controls/zoomFilterControls';
 import { UserLocationMarker, RestaurantMarkers } from './map/markers/mapMarkers';
-import AiChat from './aiChat';
+import AiChat from './AiChat';
 import ChatButton from './map/controls/chatButton';
 
 interface MapComponentProps {
@@ -62,6 +62,7 @@ const MapComponent = ({
   };
 
   return (
+    <>
     <div className={`h-[70vh] w-full ${className} relative`}>
       <MapContainer
         key={mapKey}
@@ -101,16 +102,7 @@ const MapComponent = ({
         <ChatButton onClick={() => setIsChatOpen(true)} />
       </MapContainer>
 
-      <div className="absolute bottom-0 right-0 z-[1000]">
-        {isChatOpen && (
-          <AiChat
-            restaurants={restaurants}
-            userPosition={userPosition}
-            isOpen={true} 
-            onClose={() => setIsChatOpen(false)}
-          />
-        )}
-      </div>
+  
 
       {locationError && (
         <div className="absolute bottom-4 left-4 right-4 z-40 rounded border border-red-400 bg-red-100 px-4 py-3 text-red-700">
@@ -118,6 +110,8 @@ const MapComponent = ({
         </div>
       )}
     </div>
+    <AiChat isOpen={isChatOpen} onClose={() => setIsChatOpen(false)} />
+    </>
   );
 };
 
