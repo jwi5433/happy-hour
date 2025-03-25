@@ -75,93 +75,97 @@ const AiChat: React.FC<AiChatProps> = ({ isOpen, onClose }) => {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed bottom-0 right-0 z-[1000] flex h-96 w-full flex-col rounded-t-lg bg-white shadow-lg md:w-96">
-      <div className="flex items-center justify-between rounded-t-lg bg-blue-600 p-3 font-semibold text-white">
-        <span>AI Assistant</span>
-        <button onClick={onClose} className="text-white hover:text-gray-200">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            className="h-5 w-5"
-            viewBox="0 0 20 20"
-            fill="currentColor"
-          >
-            <path
-              fillRule="evenodd"
-              d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
-              clipRule="evenodd"
-            />
-          </svg>
-        </button>
-      </div>
-
-      <div className="flex-1 overflow-y-auto bg-gray-50 p-4">
-        {messages.map((msg, index) => (
-          <div key={index} className={`mb-3 ${msg.role === 'user' ? 'text-right' : 'text-left'}`}>
-            <div
-              className={`inline-block max-w-xs rounded-lg p-3 md:max-w-md ${
-                msg.role === 'user' ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-800'
-              }`}
-            >
-              {msg.content}
+    <div id="chat-container" className="fixed bottom-0 right-4 z-[1000] w-96">
+      <div className="shadow-xl rounded-lg max-w-lg w-full" 
+        style={{ 
+          backgroundColor: 'var(--dark-bg-primary)',
+          border: '1px solid var(--dark-border)' 
+        }}>
+        <div className="p-4 flex justify-between items-center rounded-t-lg" 
+          style={{ 
+            backgroundImage: 'linear-gradient(to right, #3D3FA7, #5D5FEF)',
+            borderBottom: '1px solid var(--dark-border)'
+          }}>
+          <div className="flex items-center">
+            <div className="flex space-x-1 mr-2">
+              <div className="h-2 w-2 rounded-full animate-pulse" 
+                style={{ 
+                  backgroundColor: 'white', 
+                  opacity: '0.7', 
+                  animationDelay: '0ms' 
+                }}></div>
+              <div className="h-2 w-2 rounded-full animate-pulse" 
+                style={{ 
+                  backgroundColor: 'white', 
+                  opacity: '0.7', 
+                  animationDelay: '200ms' 
+                }}></div>
+              <div className="h-2 w-2 rounded-full animate-pulse" 
+                style={{ 
+                  backgroundColor: 'white', 
+                  opacity: '0.7', 
+                  animationDelay: '400ms' 
+                }}></div>
             </div>
+            <p className="text-lg font-semibold text-white">AI Assistant</p>
           </div>
-        ))}
-        <div ref={messagesEndRef} />
-
-        {isLoading && (
-          <div className="my-2 text-center text-gray-500">
-            <div className="inline-block rounded-full bg-gray-100 p-2">
-              <div className="flex space-x-1">
-                <div
-                  className="h-2 w-2 animate-bounce rounded-full bg-gray-400"
-                  style={{ animationDelay: '0ms' }}
-                ></div>
-                <div
-                  className="h-2 w-2 animate-bounce rounded-full bg-gray-400"
-                  style={{ animationDelay: '150ms' }}
-                ></div>
-                <div
-                  className="h-2 w-2 animate-bounce rounded-full bg-gray-400"
-                  style={{ animationDelay: '300ms' }}
-                ></div>
-              </div>
-            </div>
-          </div>
-        )}
-      </div>
-
-      <div className="border-t bg-white p-3">
-        <div className="flex space-x-2">
-          <input
-            type="text"
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            onKeyDown={(e) => e.key === 'Enter' && void handleSendMessage()}
-            placeholder="Ask about happy hours..."
-            className="flex-1 rounded-lg border p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
-          <button
-            onClick={handleSendMessage}
-            disabled={isLoading || !input.trim()}
-            className={`rounded-lg p-2 ${
-              isLoading || !input.trim()
-                ? 'cursor-not-allowed bg-gray-300 text-gray-500'
-                : 'bg-blue-500 text-white hover:bg-blue-600'
-            }`}
+          <button onClick={onClose} className="focus:outline-none transition-colors"
+            style={{ color: 'rgba(255, 255, 255, 0.7)' }}
+            onMouseOver={(e) => e.currentTarget.style.color = 'white'}
+            onMouseOut={(e) => e.currentTarget.style.color = 'rgba(255, 255, 255, 0.7)'}
           >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="h-5 w-5"
-              viewBox="0 0 20 20"
-              fill="currentColor"
-            >
-              <path
-                fillRule="evenodd"
-                d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-8.707l-3-3a1 1 0 00-1.414 1.414L10.586 9H7a1 1 0 100 2h3.586l-1.293 1.293a1 1 0 101.414 1.414l3-3a1 1 0 000-1.414z"
-                clipRule="evenodd"
-              />
+            <svg xmlns="http://www.w3.org/2000/svg" className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path>
             </svg>
           </button>
+        </div>
+        
+        <div className="h-80 overflow-y-auto p-3 bg-gray-700 scrollbar-thin">
+          {messages.map((message, index) => (
+            <div key={index} className={`mb-3 ${
+              message.role === 'user' ? 'text-right' : 'text-left'
+            }`}>
+              <div className={`inline-block rounded-lg p-2 max-w-[85%] ${
+                message.role === 'user' 
+                  ? 'bg-blue-600 text-white' 
+                  : 'bg-gray-600 text-gray-100'
+              }`}>
+                {message.content}
+              </div>
+            </div>
+          ))}
+          {isLoading && (
+            <div className="text-left mb-3">
+              <div className="inline-block rounded-lg p-2 bg-gray-600 text-gray-200">
+                <div className="flex space-x-1">
+                  <div className="h-2 w-2 rounded-full bg-[#7879F1] opacity-80 animate-bounce" style={{ animationDelay: '0ms' }}></div>
+                  <div className="h-2 w-2 rounded-full bg-[#7879F1] opacity-80 animate-bounce" style={{ animationDelay: '150ms' }}></div>
+                  <div className="h-2 w-2 rounded-full bg-[#7879F1] opacity-80 animate-bounce" style={{ animationDelay: '300ms' }}></div>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+        
+        <div className="p-3 border-t border-gray-600 bg-gray-800">
+          <form className="flex">
+            <input
+              type="text"
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              placeholder="Ask me anything..."
+              className="flex-grow px-3 py-2 rounded-l-lg bg-gray-600 text-gray-100 placeholder-gray-300 focus:outline-none"
+            />
+            <button 
+              type="submit" 
+              className="px-4 py-2 bg-blue-600 text-white rounded-r-lg hover:bg-blue-700"
+              disabled={isLoading || !input.trim()}
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path>
+              </svg>
+            </button>
+          </form>
         </div>
       </div>
     </div>

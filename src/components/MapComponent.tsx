@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { MapContainer, TileLayer, ZoomControl } from 'react-leaflet';
+import { MapContainer, TileLayer } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import { HappyHourVenue } from 'src/server/db/schema';
 import LocationButton from './map/controls/locationButton';
@@ -11,6 +11,7 @@ import ZoomFilterControl from './map/controls/zoomFilterControls';
 import { UserLocationMarker, RestaurantMarkers } from './map/markers';
 import AiChat from './AiChat';
 import ChatButton from './map/controls/chatButton';
+import CustomZoomControl from './map/controls/customZoomControl';
 
 interface MapComponentProps {
   className?: string;
@@ -69,51 +70,47 @@ const MapComponent = ({
   };
 
   return (
-    <>
-      <div className={`h-[70vh] w-full ${className} relative`}>
-        <MapContainer
-          key={mapKey}
-          center={mapCenter}
-          zoom={13}
-          style={{ height: '100%', width: '100%' }}
-          scrollWheelZoom={true}
-          maxBounds={undefined}
-          minZoom={11}
-          maxBoundsViscosity={0.8}
-          zoomControl={false}
-        >
-          <TileLayer
-            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-          />
-          <ZoomControl position="topright" />
-          <SearchControl restaurants={restaurants} />
-          <LocationTracker
-            onLocationFound={handleLocationFound}
-            onLocationError={handleLocationError}
-          />
-          <LocationButton onLocationRequest={handleLocationRequest} />
-          {userPosition && <UserLocationMarker position={userPosition} />}
+    <div className={className}>
+      <MapContainer
+        key={mapKey}
+        center={mapCenter}
+        zoom={13}
+        scrollWheelZoom={true}
+        className="h-full w-full"
+        zoomControl={false}
+      >
+        <TileLayer
+          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+        />
+        
+        <CustomZoomControl position="topright" />
+        
+        <LocationButton
+          onLocationRequest={handleLocationRequest}
+        />
+        
+        <SearchControl restaurants={restaurants} />
+        
+        <LocationTracker
+          onLocationFound={handleLocationFound}
+          onLocationError={handleLocationError}
+        />
+        
+        <ZoomFilterControl
+          restaurants={restaurants}
+          setVisibleRestaurants={setVisibleRestaurants}
+          userPosition={userPosition}
+        />
 
-          <RestaurantMarkers restaurants={visibleRestaurants} />
+        {userPosition && <UserLocationMarker position={userPosition} />}
+        
+        <RestaurantMarkers restaurants={visibleRestaurants} />
 
-          <ZoomFilterControl
-            restaurants={restaurants}
-            setVisibleRestaurants={setVisibleRestaurants}
-            userPosition={userPosition}
-          />
-
-          <ChatButton onClick={() => setIsChatOpen(true)} />
-        </MapContainer>
-
-        {locationError && (
-          <div className="absolute bottom-4 left-4 right-4 z-40 rounded border border-red-400 bg-red-100 px-4 py-3 text-red-700">
-            <p>{locationError}</p>
-          </div>
-        )}
-      </div>
-      <AiChat isOpen={isChatOpen} onClose={() => setIsChatOpen(false)} />
-    </>
+        {isChatOpen && <AiChat isOpen={isChatOpen} onClose={() => setIsChatOpen(false)} />}
+        <ChatButton onClick={() => setIsChatOpen(!isChatOpen)} />
+      </MapContainer>
+    </div>
   );
 };
 

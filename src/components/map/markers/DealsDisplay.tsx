@@ -62,8 +62,8 @@ const DealsDisplay: React.FC<DealsDisplayProps> = ({ deals = null }) => {
         <button
           className={`px-3 py-1.5 text-xs font-medium transition-colors duration-150 rounded-t-md ${
             activeTab === 'drinks'
-              ? 'bg-blue-500 text-white border-blue-500'
-              : 'text-gray-300 hover:text-white hover:bg-gray-700'
+              ? 'bg-blue-600 text-white'
+              : 'text-gray-200 hover:text-white hover:bg-gray-600'
           }`}
           onClick={() => setActiveTab('drinks')}
         >
@@ -72,8 +72,8 @@ const DealsDisplay: React.FC<DealsDisplayProps> = ({ deals = null }) => {
         <button
           className={`px-3 py-1.5 text-xs font-medium transition-colors duration-150 rounded-t-md ml-1 ${
             activeTab === 'food'
-              ? 'bg-blue-500 text-white border-blue-500'
-              : 'text-gray-300 hover:text-white hover:bg-gray-700'
+              ? 'bg-blue-600 text-white'
+              : 'text-gray-200 hover:text-white hover:bg-gray-600'
           }`}
           onClick={() => setActiveTab('food')}
         >
@@ -81,13 +81,19 @@ const DealsDisplay: React.FC<DealsDisplayProps> = ({ deals = null }) => {
         </button>
       </div>
       {activeTab === 'drinks' && drinkDeals.length > 0 && (
-        <div className="rounded bg-gray-700 p-2 shadow-md">
-          <div className="max-h-32 overflow-y-auto pr-1 scrollbar-thin scrollbar-thumb-gray-500 scrollbar-track-gray-800">
+        <div className="rounded-lg bg-gray-600 p-2.5 shadow-sm">
+          <div className="max-h-32 overflow-y-auto pr-1 scrollbar-thin">
             <ul className="space-y-1">
               {drinkDeals.map((deal, index) => (
-                <li key={index} className="flex items-center justify-between py-1 border-b border-gray-600 last:border-b-0">
-                  <span className="text-sm text-gray-300">{deal.name}</span>
-                  <span className="rounded bg-gray-600 px-1.5 py-0.5 text-xs font-medium text-gray-200 whitespace-nowrap ml-2">
+                <li key={index} className="flex items-center justify-between py-0.5 border-b border-gray-600 last:border-b-0">
+                  <span className="text-sm text-gray-200" style={{ maxWidth: '70%', wordBreak: 'break-word' }}>
+                    {deal.name}
+                  </span>
+                  <span className="rounded-md px-2 py-1 text-sm font-bold whitespace-nowrap ml-2"
+                    style={{ 
+                      backgroundColor: 'var(--dark-bg-primary)',
+                      color: 'white'
+                    }}>
                     {deal.price}
                   </span>
                 </li>
@@ -98,13 +104,19 @@ const DealsDisplay: React.FC<DealsDisplayProps> = ({ deals = null }) => {
       )}
 
       {activeTab === 'food' && foodDeals.length > 0 && (
-        <div className="rounded bg-gray-700 p-2 shadow-md">
-          <div className="max-h-32 overflow-y-auto pr-1 scrollbar-thin scrollbar-thumb-gray-500 scrollbar-track-gray-800">
+        <div className="rounded-lg bg-gray-700 p-2.5 shadow-sm">
+          <div className="max-h-32 overflow-y-auto pr-1 scrollbar-thin">
             <ul className="space-y-1">
               {foodDeals.map((deal, index) => (
-                <li key={index} className="flex items-center justify-between py-1 border-b border-gray-600 last:border-b-0">
-                  <span className="text-sm text-gray-300">{deal.name}</span>
-                  <span className="rounded bg-gray-600 px-1.5 py-0.5 text-xs font-medium text-gray-200 whitespace-nowrap ml-2">
+                <li key={index} className="flex items-center justify-between py-0.5 border-b border-gray-600 last:border-b-0">
+                  <span className="text-sm text-gray-200" style={{ maxWidth: '70%', wordBreak: 'break-word' }}>
+                    {deal.name}
+                  </span>
+                  <span className="rounded-md px-2 py-1 text-sm font-bold whitespace-nowrap ml-2"
+                    style={{ 
+                      backgroundColor: 'var(--dark-bg-primary)',
+                      color: 'white'
+                    }}>
                     {deal.price}
                   </span>
                 </li>

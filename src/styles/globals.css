@@ -2,6 +2,16 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Add these variables after the @tailwind directives but before other styles */
+:root {
+  --dark-bg-primary: #374151;  
+  --dark-bg-secondary: #4B5563; 
+  --dark-border: #6B7280;       
+  --dark-text-primary: #F9FAFB; 
+  --dark-text-secondary: #E5E7EB; 
+  --dark-accent: #3B82F6;       
+  --dark-accent-hover: #60A5FA; 
+}
 
 @tailwind base;
 @tailwind components;
@@ -43,29 +53,59 @@
 }
 
 .dark-theme-popup .leaflet-popup-content-wrapper {
-  background-color: #1f2937; 
-  color: #f3f4f6; 
-  border-radius: 8px;
-  box-shadow: 0 3px 14px rgba(0, 0, 0, 0.4);
+  background-color: transparent; 
+  color: var(--dark-text-primary);
+  border-radius: 12px;
+  box-shadow: 0 4px 8px rgba(93, 95, 239, 0.3);
+  overflow: hidden;
+  padding: 0;
 }
 
 .dark-theme-popup .leaflet-popup-tip {
-  background-color: #1f2937;
+  background-color: var(--dark-bg-primary);
+  box-shadow: 0 4px 8px rgba(93, 95, 239, 0.3);
 }
 
 .dark-theme-popup .leaflet-popup-content {
   margin: 0; 
+  width: 100% !important;
 }
 
 .dark-theme-popup .leaflet-popup-close-button {
-  color: #9ca3af; 
+  color: var(--dark-text-secondary);
+  background-color: rgba(55, 65, 81, 0.8); 
+  border-radius: 50%;
+  width: 24px;
+  height: 24px;
+  font-size: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  top: 8px;
+  right: 8px;
+  z-index: 10;
+}
+
+.dark-theme-popup .leaflet-popup-close-button span {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: -2px;
 }
 
 .dark-theme-popup .leaflet-popup-close-button:hover {
-  color: #f3f4f6;
+  color: white;
+  background-color: rgba(55, 65, 81, 0.95);
 }
 
-/* Scrollbar styling for dark theme */
+.leaflet-fade-anim .leaflet-popup {
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.custom-restaurant-marker {
+  transition: transform 0.3s ease;
+}
+
 .scrollbar-thin::-webkit-scrollbar {
   width: 6px;
 }
@@ -86,4 +126,122 @@
 .scrollbar-thin {
   scrollbar-width: thin; 
   scrollbar-color: #6b7280 #374151; 
+}
+
+.light-theme-popup .leaflet-popup-content-wrapper {
+  background-color: transparent; 
+  color: #1f2937; 
+  border-radius: 12px;
+  box-shadow: 0 4px 8px rgba(93, 95, 239, 0.3);
+  overflow: hidden;
+  padding: 0;
+}
+
+.light-theme-popup .leaflet-popup-tip {
+  background-color: white;
+  box-shadow: 0 4px 8px rgba(93, 95, 239, 0.3);
+}
+
+.light-theme-popup .leaflet-popup-content {
+  margin: 0; 
+  width: 100% !important;
+}
+
+.light-theme-popup .leaflet-popup-close-button {
+  color: #4b5563;
+  background-color: rgba(255, 255, 255, 0.8);
+  border-radius: 50%;
+  width: 24px;
+  height: 24px;
+  font-size: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  top: 8px;
+  right: 8px;
+  z-index: 10;
+}
+
+.light-theme-popup .leaflet-popup-close-button span {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: -2px;
+}
+
+.light-theme-popup .leaflet-popup-close-button:hover {
+  color: #1f2937;
+  background-color: rgba(255, 255, 255, 0.95);
+}
+
+.light-theme-popup .scrollbar-thin::-webkit-scrollbar {
+  width: 6px;
+}
+
+.light-theme-popup .scrollbar-thin::-webkit-scrollbar-track {
+  background: #f3f4f6;
+}
+
+.light-theme-popup .scrollbar-thin::-webkit-scrollbar-thumb {
+  background-color: #d1d5db; 
+  border-radius: 3px;
+}
+
+.light-theme-popup .scrollbar-thin::-webkit-scrollbar-thumb:hover {
+  background-color: #9ca3af; 
+}
+
+.light-theme-popup .scrollbar-thin {
+  scrollbar-width: thin; 
+  scrollbar-color: #d1d5db #f3f4f6; 
+}
+
+@media (max-width: 640px) {
+  .leaflet-touch .leaflet-control-zoom a, 
+  .leaflet-touch .leaflet-bar a {
+    width: 44px !important;
+    height: 44px !important;
+    line-height: 44px !important;
+    font-size: 22px !important;
+  }
+
+  .chat-icon-container svg {
+    width: 75px !important;
+    height: 75px !important;
+  }
+  
+  .leaflet-popup-content {
+    max-width: 90vw;
+    word-break: break-word;
+  }
+
+  .chat-icon-container svg {
+    width: 95px !important;
+    height: 95px !important;
+  }
+  
+  .restaurant-links a {
+    padding: 10px 5px !important;
+  }
+}
+
+.chat-icon-container {
+  position: relative;
+}
+
+.chat-icon-container:after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  box-shadow: 0 0 20px 5px rgba(93, 95, 239, 0.15);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.chat-icon-container:hover:after {
+  opacity: 1;
 }

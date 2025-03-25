@@ -13,7 +13,6 @@ const formatHappyHours = (happyHours: HappyHour[] | null): string => {
     Sunday: 7,
   };
 
-  // First, group by days
   const dayGroups: Record<string, Set<string>> = {};
   
   happyHours.forEach((hour) => {
@@ -25,7 +24,6 @@ const formatHappyHours = (happyHours: HappyHour[] | null): string => {
     dayGroups[hour.day]?.add(`${hour.start_time}-${hour.end_time}`);
   });
 
-  // Group days that have identical time slots
   const timeGroupings: Record<string, string[]> = {};
   
   Object.entries(dayGroups).forEach(([day, times]) => {
@@ -36,7 +34,6 @@ const formatHappyHours = (happyHours: HappyHour[] | null): string => {
     timeGroupings[timeKey].push(day);
   });
 
-  // Format each group
   const formattedGroups = Object.entries(timeGroupings).map(([times, days]) => {
     days.sort((a, b) => {
       const aOrder = typeof a === 'string' ? (dayOrder[a] ?? 0) : 0;
@@ -49,7 +46,7 @@ const formatHappyHours = (happyHours: HappyHour[] | null): string => {
     if (days.length === 1) {
       const day = days[0];
       if (day) {
-        ranges.push(`<span class="font-bold">${day}</span>`);
+        ranges.push(`<span class="font-medium text-gray-100">${day}</span>`);
       }
     } else {
       let rangeStart: string | undefined = days[0];
@@ -69,15 +66,15 @@ const formatHappyHours = (happyHours: HappyHour[] | null): string => {
           if (i === days.length - 1) {
             if (rangeStart && prev) {
               ranges.push(rangeStart === prev 
-                ? `<span class="font-bold">${rangeStart}</span>` 
-                : `<span class="font-bold">${rangeStart}-${prev}</span>`);
+                ? `<span class="font-medium text-gray-100">${rangeStart}</span>` 
+                : `<span class="font-medium text-gray-100">${rangeStart}-${prev}</span>`);
             }
           }
         } else {
           if (rangeStart && prev) {
             ranges.push(rangeStart === prev 
-              ? `<span class="font-bold">${rangeStart}</span>` 
-              : `<span class="font-bold">${rangeStart}-${prev}</span>`);
+              ? `<span class="font-medium text-gray-100">${rangeStart}</span>` 
+              : `<span class="font-medium text-gray-100">${rangeStart}-${prev}</span>`);
           }
 
           rangeStart = current;
@@ -85,14 +82,14 @@ const formatHappyHours = (happyHours: HappyHour[] | null): string => {
 
           if (i === days.length - 1) {
             if (current) {
-              ranges.push(`<span class="font-bold">${current}</span>`);
+              ranges.push(`<span class="font-medium text-gray-100">${current}</span>`);
             }
           }
         }
       }
     }
 
-    return `${ranges.join(', ')} •  ${times}`;
+    return `${ranges.join(', ')} •  <span class="text-white">${times}</span>`;
   });
 
   return formattedGroups.join('\n');

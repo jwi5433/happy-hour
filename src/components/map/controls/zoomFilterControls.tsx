@@ -22,6 +22,7 @@ const ZoomFilterControl = ({
     const filterRestaurants = () => {
       if (isProcessing.current) return;
       isProcessing.current = true;
+
       const zoom = map.getZoom();
       const bounds = map.getBounds();
 
@@ -72,16 +73,14 @@ const ZoomFilterControl = ({
       }, 100);
     };
 
-    map.on('zoomend', filterRestaurants);
     map.on('moveend', filterRestaurants);
 
     filterRestaurants();
 
     return () => {
-      map.off('zoomend', filterRestaurants);
       map.off('moveend', filterRestaurants);
     };
-  }, [map, restaurants, setVisibleRestaurants, userPosition]);
+  }, [map, restaurants, setVisibleRestaurants]);
 
   return null;
 };

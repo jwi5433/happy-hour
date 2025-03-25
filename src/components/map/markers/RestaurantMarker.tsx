@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { Marker, Popup } from 'react-leaflet';
 import L from 'leaflet';
 import { HappyHourVenue } from 'src/server/db/schema';
@@ -11,106 +11,196 @@ import {
   Instagram, 
   Globe, 
   Map as MapIcon, 
-  Star 
+  Star,
+  Clock 
 } from 'react-feather';
+import { useMap } from 'react-leaflet';
+import { Icon } from 'leaflet';
 
 interface RestaurantMarkerProps {
   restaurant: HappyHourVenue;
+  isSelected?: boolean;
 }
 
-const RestaurantMarker: React.FC<RestaurantMarkerProps> = ({ restaurant }) => {
+const RestaurantMarker: React.FC<RestaurantMarkerProps> = ({ 
+  restaurant,
+  isSelected
+}) => {
+  const map = useMap();
+  const markerRef = useRef<L.Marker>(null);
+  
   if (!restaurant.latitude || !restaurant.longitude) {
     return null;
   }
 
   const position: [number, number] = [restaurant.latitude, restaurant.longitude];
 
+  const handleMarkerClick = () => {
+    map.closePopup();
+
+    const targetLatLng = L.latLng(
+      position[0] + 0.0035,
+      position[1]
+    );
+
+    map.setView(targetLatLng, 15, {
+      animate: true,
+      duration: 1,
+      easeLinearity: 0.25
+    });
+
+    setTimeout(() => {
+      markerRef.current?.openPopup();
+    }, 1000);
+  };
+
+  useEffect(() => {
+    if (isSelected && restaurant.latitude && restaurant.longitude) {
+      handleMarkerClick();
+    }
+  }, [isSelected]); 
+
+  const restaurantIcon = new Icon({
+    iconUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon.png',
+    shadowUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-shadow.png',
+    iconSize: [25, 41],
+    iconAnchor: [12, 41],
+    popupAnchor: [1, -34],
+    shadowSize: [41, 41]
+  });
+
   return (
-    <Marker position={position} icon={restaurantIcon}>
-      <Popup className="dark-theme-popup">
-        <div className="w-72 rounded bg-gray-800 p-3 text-white">
-          <h3 className="mb-2 text-lg font-bold text-white">{restaurant.name}</h3>
-          
-          <p className="mb-2 text-sm text-gray-300">
-            {restaurant.address || 'Address not available'}
-          </p>
-          
-          <div className="mb-3 rounded bg-gray-700 p-2">
-            <h4 className="mb-1 text-sm font-medium text-blue-300">Hours</h4>
-              <p 
-              className="text-xs text-gray-300 whitespace-pre-line"
-              dangerouslySetInnerHTML={{ __html: formatHappyHours(restaurant.happyHours as HappyHour[]) }}
-            />
+    <Marker 
+      ref={markerRef}
+      position={position} 
+      icon={restaurantIcon}
+      eventHandlers={{
+        click: handleMarkerClick
+      }}
+    >
+      <Popup 
+        className="dark-theme-popup"
+        minWidth={280}
+      >
+        <div className="w-72 rounded-xl overflow-hidden shadow-md" style={{ backgroundColor: 'var(--dark-bg-primary)' }}>
+          <div className="p-3 text-center" style={{ borderBottom: '1px solid var(--dark-border)' }}>
+            <h3 className="text-xl font-bold" style={{ color: 'var(--dark-text-primary)' }}>{restaurant.name}</h3>
           </div>
 
-          <div className="mb-3">
-            <h4 className="mb-1 text-sm font-medium text-blue-300">Deals</h4>
+          <div className="p-3">
+            <div className="mb-3">
+              <div className="flex items-center mb-1">
+                <Clock className="h-4 w-4 mr-1.5" style={{ color: 'white' }} />
+                <h4 className="font-medium text-sm" style={{ color: 'white' }}>Hours</h4>
+              </div>
+              <div className="rounded-lg p-2" style={{ backgroundColor: 'var(--dark-bg-secondary)' }}>
+                <p className="text-sm whitespace-pre-line" 
+                  style={{ color: 'var(--dark-text-secondary)' }}
+                  dangerouslySetInnerHTML={{ 
+                    __html: formatHappyHours(restaurant.happyHours as HappyHour[]) 
+                  }}
+                />
+              </div>
+            </div>
+
             <DealsDisplay deals={restaurant.deals as Deal[] | null} />
-          </div>
           
-          <div className="mt-3 flex items-center justify-center space-x-4">
-            {restaurant.websiteUrl && (
-              <a
-                href={restaurant.websiteUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-gray-300 hover:text-white transition-colors"
-                title="Visit Website"
-              >
-                <Globe size={20} />
-              </a>
-            )}
-            
-            {restaurant.instagramUrl && (
-              <a
-                href={restaurant.instagramUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-gray-300 hover:text-white transition-colors"
-                title="Instagram"
-              >
-                <Instagram size={20} />
-              </a>
-            )}
-            
-            {restaurant.googlemapsUrl && (
-              <a
-                href={restaurant.googlemapsUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-gray-300 hover:text-white transition-colors"
-                title="View on Google Maps"
-              >
-                <MapIcon size={20} />
-              </a>
-            )}
-            
-            {restaurant.yelpUrl && (
-              <a
-                href={restaurant.yelpUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-gray-300 hover:text-white transition-colors"
-                title="Read Reviews"
-              >
-                <Star size={20} />
-              </a>
-            )}
+            <div className="mt-3 flex justify-center gap-2 restaurant-links">
+              {restaurant.websiteUrl && (
+                <a
+                  href={restaurant.websiteUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex-1 flex items-center justify-center rounded-lg transition-all duration-200 py-2 px-1 border"
+                  style={{ 
+                    borderColor: 'var(--dark-border)',
+                    backgroundColor: 'var(--dark-bg-secondary)',
+                    color: 'white'
+                  }}
+                  onMouseOver={(e) => {
+                    e.currentTarget.style.backgroundColor = 'var(--dark-accent)';
+                    e.currentTarget.style.color = 'white';
+                    e.currentTarget.style.transform = 'translateY(-2px)';
+                    e.currentTarget.style.boxShadow = '0 4px 6px rgba(0, 0, 0, 0.1)';
+                  }}
+                  onMouseOut={(e) => {
+                    e.currentTarget.style.backgroundColor = 'var(--dark-bg-secondary)';
+                    e.currentTarget.style.color = 'white';
+                    e.currentTarget.style.transform = 'translateY(0)';
+                    e.currentTarget.style.boxShadow = 'none';
+                  }}
+                  title="Visit Website"
+                >
+                  <Globe className="h-4 w-4 mr-1.5" style={{ color: 'white' }} />
+                  <span className="text-xs font-medium">Website</span>
+                </a>
+              )}
+              
+              {restaurant.instagramUrl && (
+                <a
+                  href={restaurant.instagramUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex-1 flex items-center justify-center rounded-lg transition-all duration-200 py-2 px-1 border"
+                  style={{ 
+                    borderColor: 'var(--dark-border)',
+                    backgroundColor: 'var(--dark-bg-secondary)',
+                    color: 'white'
+                  }}
+                  onMouseOver={(e) => {
+                    e.currentTarget.style.backgroundColor = 'var(--dark-accent)';
+                    e.currentTarget.style.color = 'white';
+                    e.currentTarget.style.transform = 'translateY(-2px)';
+                    e.currentTarget.style.boxShadow = '0 4px 6px rgba(0, 0, 0, 0.1)';
+                  }}
+                  onMouseOut={(e) => {
+                    e.currentTarget.style.backgroundColor = 'var(--dark-bg-secondary)';
+                    e.currentTarget.style.color = 'white';
+                    e.currentTarget.style.transform = 'translateY(0)';
+                    e.currentTarget.style.boxShadow = 'none';
+                  }}
+                  title="Instagram"
+                >
+                  <Instagram className="h-4 w-4 mr-1.5" style={{ color: 'white' }} />
+                  <span className="text-xs font-medium">Instagram</span>
+                </a>
+              )}
+              
+              {restaurant.googlemapsUrl && (
+                <a
+                  href={restaurant.googlemapsUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex-1 flex items-center justify-center rounded-lg transition-all duration-200 py-2 px-1 border"
+                  style={{ 
+                    borderColor: 'var(--dark-border)',
+                    backgroundColor: 'var(--dark-bg-secondary)',
+                    color: 'white'
+                  }}
+                  onMouseOver={(e) => {
+                    e.currentTarget.style.backgroundColor = 'var(--dark-accent)';
+                    e.currentTarget.style.color = 'white';
+                    e.currentTarget.style.transform = 'translateY(-2px)';
+                    e.currentTarget.style.boxShadow = '0 4px 6px rgba(0, 0, 0, 0.1)';
+                  }}
+                  onMouseOut={(e) => {
+                    e.currentTarget.style.backgroundColor = 'var(--dark-bg-secondary)';
+                    e.currentTarget.style.color = 'white';
+                    e.currentTarget.style.transform = 'translateY(0)';
+                    e.currentTarget.style.boxShadow = 'none';
+                  }}
+                  title="View on Google Maps"
+                >
+                  <MapIcon className="h-4 w-4 mr-1.5" style={{ color: 'white' }} />
+                  <span className="text-xs font-medium">Directions</span>
+                </a>
+              )}
+            </div>
           </div>
         </div>
       </Popup>
     </Marker>
   );
 };
-
-const restaurantIcon = L.icon({
-  iconUrl:
-    'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-blue.png',
-  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
-  iconSize: [25, 41],
-  iconAnchor: [12, 41],
-  popupAnchor: [1, -34],
-  shadowSize: [41, 41],
-});
 
 export default RestaurantMarker;

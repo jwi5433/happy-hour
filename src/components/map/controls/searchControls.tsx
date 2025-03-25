@@ -5,6 +5,8 @@ import { useState, useRef, useEffect } from 'react';
 import { useMap } from 'react-leaflet';
 import { happyHourVenues } from 'src/server/db/schema';
 import { InferSelectModel } from 'drizzle-orm';
+import L from 'leaflet';
+import { Search, X } from 'react-feather';
 
 type Restaurant = InferSelectModel<typeof happyHourVenues>;
 
@@ -72,14 +74,17 @@ const SearchControl: React.FC<SearchControlProps> = ({ restaurants, onSearchResu
   };
 
   const handleRestaurantClick = (restaurant: Restaurant) => {
-    const lat = Number(restaurant.latitude);
-    const lng = Number(restaurant.longitude);
-
-    map.flyTo([lat, lng], 16);
-
     setShowResults(false);
+    setSearchTerm('');
 
-    setSearchTerm(restaurant.name);
+    map.eachLayer((layer) => {
+      if (layer instanceof L.Marker && layer.getLatLng().equals([
+        restaurant.latitude ?? 0,
+        restaurant.longitude ?? 0
+      ])) {
+        layer.fire('click');
+      }
+    });
   };
 
   const toggleSearch = () => {
@@ -112,30 +117,53 @@ const SearchControl: React.FC<SearchControlProps> = ({ restaurants, onSearchResu
 
   return (
     <div className="leaflet-top leaflet-left" style={{ marginTop: '10px', marginLeft: '10px' }}>
-      <div className="leaflet-control">
+      <div className="leaflet-control" style={{ 
+        filter: 'drop-shadow(0 4px 8px rgba(93, 95, 239, 0.3))',
+        transition: 'transform 0.3s ease, filter 0.3s ease'
+      }}
+      onMouseOver={(e) => {
+        e.currentTarget.style.transform = 'scale(1.02)';
+        e.currentTarget.style.filter = 'drop-shadow(0 6px 10px rgba(93, 95, 239, 0.4))';
+      }}
+      onMouseOut={(e) => {
+        e.currentTarget.style.transform = 'scale(1)';
+        e.currentTarget.style.filter = 'drop-shadow(0 4px 8px rgba(93, 95, 239, 0.3))';
+      }}>
         <div
-          className={`flex items-center rounded-md bg-white shadow-md transition-all duration-300 ease-in-out ${isExpanded ? 'w-full sm:w-64' : 'w-10'} relative overflow-visible`}
+          className={`flex items-center rounded-2xl transition-all duration-300 ease-in-out ${isExpanded ? 'w-full sm:w-72' : 'w-14'} relative overflow-visible`}
+          style={{ 
+            height: '50px',
+            backgroundColor: 'var(--dark-bg-primary)'
+          }}
         >
           <button
             onClick={toggleSearch}
-            className="flex-shrink-0 p-2 text-gray-500 hover:text-blue-600 focus:outline-none"
-            aria-label={isExpanded ? 'Close search' : 'Open search'}
-            title={isExpanded ? 'Close search' : 'Search happy hours'}
+            className="flex-shrink-0 p-2 focus:outline-none h-full"
+            aria-label={isExpanded ? "Close search" : "Open search"}
+            title={isExpanded ? "Close search" : "Open search"}
+            style={{ 
+              width: '56px',
+              display: 'flex', 
+              alignItems: 'center', 
+              justifyContent: 'center',
+              color: 'var(--dark-accent)',
+              transition: 'color 0.3s ease, background-color 0.3s ease',
+              borderRadius: '12px'
+            }}
+            onMouseOver={(e) => {
+              e.currentTarget.style.backgroundColor = 'var(--dark-accent)';
+              e.currentTarget.style.color = 'white';
+              e.currentTarget.style.transform = 'scale(1.05)';
+              const svg = e.currentTarget.querySelector('svg');
+              if (svg) svg.style.color = 'white';
+            }}
+            onMouseOut={(e) => {
+              e.currentTarget.style.backgroundColor = 'transparent';
+              e.currentTarget.style.color = 'var(--dark-accent)';
+              e.currentTarget.style.transform = 'scale(1)';
+            }}
           >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-              strokeWidth={1.5}
-              stroke="currentColor"
-              className="h-6 w-6"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"
-              />
-            </svg>
+            <Search className="h-7 w-7" />
           </button>
 
           {isExpanded && (
@@ -146,41 +174,40 @@ const SearchControl: React.FC<SearchControlProps> = ({ restaurants, onSearchResu
                 value={searchTerm}
                 onChange={handleInputChange}
                 onFocus={handleInputFocus}
-                className="w-full px-1 py-2 text-sm focus:outline-none"
                 placeholder="Search happy hours..."
                 aria-label="Search happy hours"
+                style={{
+                  width: '100%',
+                  padding: '8px 4px',
+                  fontSize: '0.875rem',
+                  backgroundColor: 'transparent',
+                  color: 'var(--dark-text-primary)',
+                  border: 'none',
+                  outline: 'none'
+                }}
               />
 
               {searchTerm && (
                 <button
                   onClick={handleClearSearch}
-                  className="flex-shrink-0 p-2 text-gray-400 hover:text-gray-600 focus:outline-none"
+                  className="flex-shrink-0 p-2 text-blue-400 hover:text-blue-300 focus:outline-none"
                   aria-label="Clear search"
                   title="Clear search"
                 >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    strokeWidth={1.5}
-                    stroke="currentColor"
-                    className="h-5 w-5"
-                  >
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
-                  </svg>
+                  <X className="h-6 w-6" />
                 </button>
               )}
               {showResults && matches.length > 0 && (
                 <div
                   ref={resultsRef}
-                  className="absolute left-0 top-full z-[1000] mt-1 max-h-60 w-full overflow-y-auto rounded-md bg-white shadow-lg"
+                  className="absolute left-0 top-full z-[1000] mt-1 max-h-60 w-full overflow-y-auto rounded-md bg-gray-800 shadow-lg"
                 >
                   <ul className="py-1">
                     {matches.map((restaurant) => (
                       <li
                         key={restaurant.id}
                         onClick={() => handleRestaurantClick(restaurant)}
-                        className="cursor-pointer px-4 py-2 text-sm hover:bg-blue-50"
+                        className="cursor-pointer px-4 py-2 text-sm text-gray-200 hover:bg-gray-700"
                       >
                         {restaurant.name}
                       </li>
