@@ -8,7 +8,7 @@ import LocationButton from './map/controls/locationButton';
 import LocationTracker from './map/tracking/locationTracker';
 import SearchControl from './map/controls/searchControls';
 import ZoomFilterControl from './map/controls/zoomFilterControls';
-import { UserLocationMarker, RestaurantMarkers } from './map/markers/mapMarkers';
+import { UserLocationMarker, RestaurantMarkers } from './map/markers';
 import AiChat from './AiChat';
 import ChatButton from './map/controls/chatButton';
 
