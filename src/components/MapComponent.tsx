@@ -12,6 +12,7 @@ import { UserLocationMarker, RestaurantMarkers } from './map/markers';
 import AiChat from './AiChat';
 import ChatButton from './map/controls/chatButton';
 import CustomZoomControl from './map/controls/customZoomControl';
+import L from 'leaflet';
 
 interface MapComponentProps {
   className?: string;
@@ -47,6 +48,17 @@ const MapComponent = ({
       setVisibleRestaurants(restaurants.slice(0, 50));
     }
   }, [restaurants]);
+
+  useEffect(() => {
+    // This fixes the missing icon issue in production
+    delete (L.Icon.Default.prototype as any)._getIconUrl;
+    
+    L.Icon.Default.mergeOptions({
+      iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
+      iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
+      shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
+    });
+  }, []);
 
   const handleLocationFound = (position: [number, number]) => {
     setUserPosition(position);
