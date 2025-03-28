@@ -3,6 +3,7 @@
 import dynamic from 'next/dynamic';
 import { happyHourVenues } from 'src/server/db/schema';
 import { InferSelectModel } from 'drizzle-orm';
+import { Box } from '@mantine/core';
 
 type Restaurant = InferSelectModel<typeof happyHourVenues>;
 
@@ -18,13 +19,20 @@ interface MapProps {
   initialUserPosition?: [number, number] | null;
 }
 
-export default function Map({ className = '', restaurants = [], loading = false, initialUserPosition= null }: MapProps) {
+export default function Map({
+  className = '',
+  restaurants = [],
+  loading = false,
+  initialUserPosition = null,
+}: MapProps) {
   return (
-    <MapComponent
-      className={className}
-      restaurants={restaurants}
-      loading={loading}
-      initialUserPosition={initialUserPosition}
-    />
+    <Box className={className} style={{ height: '100%', width: '100%' }}>
+      <MapComponent
+        className="h-full w-full"
+        restaurants={restaurants}
+        loading={loading}
+        initialUserPosition={initialUserPosition}
+      />
+    </Box>
   );
 }

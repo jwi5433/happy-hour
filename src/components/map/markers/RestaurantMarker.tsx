@@ -1,34 +1,36 @@
 'use client';
 
-import { useState, useRef, useEffect, useCallback } from 'react';
-import { Marker, Popup } from 'react-leaflet';
+import { useRef, useEffect } from 'react';
+import { Marker, Popup, useMap } from 'react-leaflet';
 import L from 'leaflet';
+import { Icon } from 'leaflet';
 import { HappyHourVenue } from 'src/server/db/schema';
 import DealsDisplay from './DealsDisplay';
 import { HappyHour, Deal } from 'src/types/happy-hour';
 import formatHappyHours from 'src/utils/formatters';
-import { 
-  Instagram, 
-  Globe, 
-  Map as MapIcon, 
-  Star,
-  Clock 
-} from 'react-feather';
-import { useMap } from 'react-leaflet';
-import { Icon } from 'leaflet';
+import {
+  Text,
+  Paper,
+  Group,
+  Title,
+  Stack,
+  ActionIcon,
+  Box,
+  useMantineTheme,
+  Flex,
+} from '@mantine/core';
+import { IconWorld, IconBrandInstagram, IconMap, IconClock } from '@tabler/icons-react';
 
 interface RestaurantMarkerProps {
   restaurant: HappyHourVenue;
   isSelected?: boolean;
 }
 
-const RestaurantMarker: React.FC<RestaurantMarkerProps> = ({ 
-  restaurant,
-  isSelected
-}) => {
+const RestaurantMarker: React.FC<RestaurantMarkerProps> = ({ restaurant, isSelected }) => {
   const map = useMap();
   const markerRef = useRef<L.Marker>(null);
-  
+  const theme = useMantineTheme();
+
   if (!restaurant.latitude || !restaurant.longitude) {
     return null;
   }
@@ -38,15 +40,12 @@ const RestaurantMarker: React.FC<RestaurantMarkerProps> = ({
   const handleMarkerClick = () => {
     map.closePopup();
 
-    const targetLatLng = L.latLng(
-      position[0] + 0.0035,
-      position[1]
-    );
+    const targetLatLng = L.latLng(position[0] + 0.0035, position[1]);
 
     map.setView(targetLatLng, 15, {
       animate: true,
       duration: 1,
-      easeLinearity: 0.25
+      easeLinearity: 0.25,
     });
 
     setTimeout(() => {
@@ -58,7 +57,7 @@ const RestaurantMarker: React.FC<RestaurantMarkerProps> = ({
     if (isSelected && restaurant.latitude && restaurant.longitude) {
       handleMarkerClick();
     }
-  }, [isSelected]); 
+  }, [isSelected]);
 
   const restaurantIcon = new Icon({
     iconUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon.png',
@@ -66,138 +65,208 @@ const RestaurantMarker: React.FC<RestaurantMarkerProps> = ({
     iconSize: [25, 41],
     iconAnchor: [12, 41],
     popupAnchor: [1, -34],
-    shadowSize: [41, 41]
+    shadowSize: [41, 41],
+  });
+
+  const happyHours = (restaurant.happyHours as HappyHour[]) || [];
+  const rawHappyHours = formatHappyHours ? formatHappyHours(happyHours) : '';
+  const happyHoursLines = rawHappyHours
+    ? rawHappyHours.split('\n').filter((line) => line.trim() !== '')
+    : [];
+
+  const parsedHappyHours = happyHoursLines.map((line) => {
+    const parts = line.split('•');
+    if (parts.length < 2) return { days: line, times: '' };
+
+    const days = parts[0]?.replace(/<\/?[^>]+(>|$)/g, '').trim() || '';
+    const times = parts[1]?.replace(/<\/?[^>]+(>|$)/g, '').trim() || '';
+    
+    return {
+      days,
+      times,
+    };
   });
 
   return (
-    <Marker 
+    <Marker
       ref={markerRef}
-      position={position} 
+      position={position}
       icon={restaurantIcon}
       eventHandlers={{
-        click: handleMarkerClick
+        click: handleMarkerClick,
       }}
     >
-      <Popup 
-        className="dark-theme-popup"
-        minWidth={280}
-      >
-        <div className="w-72 rounded-xl overflow-hidden shadow-md" style={{ backgroundColor: 'var(--dark-bg-primary)' }}>
-          <div className="p-3 text-center" style={{ borderBottom: '1px solid var(--dark-border)' }}>
-            <h3 className="text-xl font-bold" style={{ color: 'var(--dark-text-primary)' }}>{restaurant.name}</h3>
-          </div>
+      <Popup className="dark-theme-popup" minWidth={500} maxWidth={550} pane="popupPane">
+        <Paper
+          p={0}
+          w="100%"
+          radius="md"
+          bg={theme.colors.dark[6]}
+          withBorder={false}
+          style={{
+            overflow: 'hidden',
+            boxShadow: 'none',
+            border: 'none'
+          }}
+        >
+          <Box
+            py="xs"
+            px="md"
+            ta="center"
+            style={{ borderBottom: `1px solid ${theme.colors.dark[4]}` }}
+          >
+            <Title order={4} c={theme.colors.gray[0]}>
+              {restaurant.name}
+            </Title>
+          </Box>
 
-          <div className="p-3">
-            <div className="mb-3">
-              <div className="flex items-center mb-1">
-                <Clock className="h-4 w-4 mr-1.5" style={{ color: 'white' }} />
-                <h4 className="font-medium text-sm" style={{ color: 'white' }}>Hours</h4>
-              </div>
-              <div className="rounded-lg p-2" style={{ backgroundColor: 'var(--dark-bg-secondary)' }}>
-                <p className="text-sm whitespace-pre-line" 
-                  style={{ color: 'var(--dark-text-secondary)' }}
-                  dangerouslySetInnerHTML={{ 
-                    __html: formatHappyHours(restaurant.happyHours as HappyHour[]) 
-                  }}
-                />
-              </div>
-            </div>
+          <Box py="xs" px="sm">
+            <Stack gap={2}>
+              <Box
+                py={4}
+                px={8}
+                style={{
+                  borderRadius: theme.radius.sm,
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                }}
+              >
+                <IconClock size={16} color={theme.colors.gray[0]} style={{ marginRight: 6 }} />
+                <Text fw={500} size="14px" c={theme.colors.gray[0]}>
+                  Hours
+                </Text>
+              </Box>
 
-            <DealsDisplay deals={restaurant.deals as Deal[] | null} />
-          
-            <div className="mt-3 flex justify-center gap-2 restaurant-links">
-              {restaurant.websiteUrl && (
-                <a
-                  href={restaurant.websiteUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex-1 flex items-center justify-center rounded-lg transition-all duration-200 py-2 px-1 border"
-                  style={{ 
-                    borderColor: 'var(--dark-border)',
-                    backgroundColor: 'var(--dark-bg-secondary)',
-                    color: 'white'
-                  }}
-                  onMouseOver={(e) => {
-                    e.currentTarget.style.backgroundColor = 'var(--dark-accent)';
-                    e.currentTarget.style.color = 'white';
-                    e.currentTarget.style.transform = 'translateY(-2px)';
-                    e.currentTarget.style.boxShadow = '0 4px 6px rgba(0, 0, 0, 0.1)';
-                  }}
-                  onMouseOut={(e) => {
-                    e.currentTarget.style.backgroundColor = 'var(--dark-bg-secondary)';
-                    e.currentTarget.style.color = 'white';
-                    e.currentTarget.style.transform = 'translateY(0)';
-                    e.currentTarget.style.boxShadow = 'none';
-                  }}
-                  title="Visit Website"
-                >
-                  <Globe className="h-4 w-4 mr-1.5" style={{ color: 'white' }} />
-                  <span className="text-xs font-medium">Website</span>
-                </a>
+              {parsedHappyHours?.length > 0 && parsedHappyHours[0]?.days !== 'No happy hours listed' ? (
+                <Paper bg={theme.colors.dark[5]} p="xs" mb={2} withBorder={false} style={{ border: 'none' }}>
+                  <Stack gap={4} w="100%">
+                    {parsedHappyHours.map((hour, index) => (
+                      <Flex key={index} align="center" justify="space-between" w="100%">
+                        <Text fw={500} c={theme.colors.gray[1]} size="xs" style={{ marginRight: 'auto' }}>
+                          {hour.days}
+                        </Text>
+                        {hour.times && (
+                          <Text c={theme.colors.blue[4]} size="xs" fw={500} style={{ textAlign: 'right', minWidth: '120px' }}>
+                            {hour.times}
+                          </Text>
+                        )}
+                      </Flex>
+                    ))}
+                  </Stack>
+                </Paper>
+              ) : (
+                <Text size="sm" c={theme.colors.gray[4]} p="xs">
+                  No happy hours listed
+                </Text>
               )}
-              
-              {restaurant.instagramUrl && (
-                <a
-                  href={restaurant.instagramUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex-1 flex items-center justify-center rounded-lg transition-all duration-200 py-2 px-1 border"
-                  style={{ 
-                    borderColor: 'var(--dark-border)',
-                    backgroundColor: 'var(--dark-bg-secondary)',
-                    color: 'white'
-                  }}
-                  onMouseOver={(e) => {
-                    e.currentTarget.style.backgroundColor = 'var(--dark-accent)';
-                    e.currentTarget.style.color = 'white';
-                    e.currentTarget.style.transform = 'translateY(-2px)';
-                    e.currentTarget.style.boxShadow = '0 4px 6px rgba(0, 0, 0, 0.1)';
-                  }}
-                  onMouseOut={(e) => {
-                    e.currentTarget.style.backgroundColor = 'var(--dark-bg-secondary)';
-                    e.currentTarget.style.color = 'white';
-                    e.currentTarget.style.transform = 'translateY(0)';
-                    e.currentTarget.style.boxShadow = 'none';
-                  }}
-                  title="Instagram"
-                >
-                  <Instagram className="h-4 w-4 mr-1.5" style={{ color: 'white' }} />
-                  <span className="text-xs font-medium">Instagram</span>
-                </a>
+
+              {Array.isArray(restaurant.deals) && restaurant.deals.length > 0 && (
+                <DealsDisplay deals={restaurant.deals} />
               )}
-              
-              {restaurant.googlemapsUrl && (
-                <a
-                  href={restaurant.googlemapsUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex-1 flex items-center justify-center rounded-lg transition-all duration-200 py-2 px-1 border"
-                  style={{ 
-                    borderColor: 'var(--dark-border)',
-                    backgroundColor: 'var(--dark-bg-secondary)',
-                    color: 'white'
-                  }}
-                  onMouseOver={(e) => {
-                    e.currentTarget.style.backgroundColor = 'var(--dark-accent)';
-                    e.currentTarget.style.color = 'white';
-                    e.currentTarget.style.transform = 'translateY(-2px)';
-                    e.currentTarget.style.boxShadow = '0 4px 6px rgba(0, 0, 0, 0.1)';
-                  }}
-                  onMouseOut={(e) => {
-                    e.currentTarget.style.backgroundColor = 'var(--dark-bg-secondary)';
-                    e.currentTarget.style.color = 'white';
-                    e.currentTarget.style.transform = 'translateY(0)';
-                    e.currentTarget.style.boxShadow = 'none';
-                  }}
-                  title="View on Google Maps"
-                >
-                  <MapIcon className="h-4 w-4 mr-1.5" style={{ color: 'white' }} />
-                  <span className="text-xs font-medium">Directions</span>
-                </a>
-              )}
-            </div>
-          </div>
-        </div>
+
+              <Group justify="center" gap="xs" mt={2}>
+                {restaurant.websiteUrl && (
+                  <ActionIcon
+                    component="a"
+                    href={restaurant.websiteUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    variant="outline"
+                    color="blue"
+                    radius="xl"
+                    size={44}
+                    bg={theme.colors.dark[5]}
+                    style={{
+                      border: `1px solid ${theme.colors.dark[4]}`,
+                      transition: 'all 0.3s ease',
+                    }}
+                    onMouseOver={(e) => {
+                      e.currentTarget.style.backgroundColor = theme.colors.blue[7];
+                      e.currentTarget.style.color = theme.white;
+                      e.currentTarget.style.transform = 'scale(1.05)';
+                      e.currentTarget.style.boxShadow = theme.shadows.sm;
+                    }}
+                    onMouseOut={(e) => {
+                      e.currentTarget.style.backgroundColor = theme.colors.dark[5];
+                      e.currentTarget.style.color = theme.colors.blue[5];
+                      e.currentTarget.style.transform = 'scale(1)';
+                      e.currentTarget.style.boxShadow = 'none';
+                    }}
+                    title="Website"
+                  >
+                    <IconWorld size={24} />
+                  </ActionIcon>
+                )}
+
+                {restaurant.instagramUrl && (
+                  <ActionIcon
+                    component="a"
+                    href={restaurant.instagramUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    variant="outline"
+                    color="blue"
+                    radius="xl"
+                    size={44}
+                    bg={theme.colors.dark[5]}
+                    style={{
+                      border: `1px solid ${theme.colors.dark[4]}`,
+                      transition: 'all 0.3s ease',
+                    }}
+                    onMouseOver={(e) => {
+                      e.currentTarget.style.backgroundColor = theme.colors.blue[7];
+                      e.currentTarget.style.color = theme.white;
+                      e.currentTarget.style.transform = 'scale(1.05)';
+                      e.currentTarget.style.boxShadow = theme.shadows.sm;
+                    }}
+                    onMouseOut={(e) => {
+                      e.currentTarget.style.backgroundColor = theme.colors.dark[5];
+                      e.currentTarget.style.color = theme.colors.blue[5];
+                      e.currentTarget.style.transform = 'scale(1)';
+                      e.currentTarget.style.boxShadow = 'none';
+                    }}
+                    title="Instagram"
+                  >
+                    <IconBrandInstagram size={24} />
+                  </ActionIcon>
+                )}
+
+                {restaurant.googlemapsUrl && (
+                  <ActionIcon
+                    component="a"
+                    href={restaurant.googlemapsUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    variant="outline"
+                    color="blue"
+                    radius="xl"
+                    size={44}
+                    bg={theme.colors.dark[5]}
+                    style={{
+                      border: `1px solid ${theme.colors.dark[4]}`,
+                      transition: 'all 0.3s ease',
+                    }}
+                    onMouseOver={(e) => {
+                      e.currentTarget.style.backgroundColor = theme.colors.blue[7];
+                      e.currentTarget.style.color = theme.white;
+                      e.currentTarget.style.transform = 'scale(1.05)';
+                      e.currentTarget.style.boxShadow = theme.shadows.sm;
+                    }}
+                    onMouseOut={(e) => {
+                      e.currentTarget.style.backgroundColor = theme.colors.dark[5];
+                      e.currentTarget.style.color = theme.colors.blue[5];
+                      e.currentTarget.style.transform = 'scale(1)';
+                      e.currentTarget.style.boxShadow = 'none';
+                    }}
+                    title="Directions"
+                  >
+                    <IconMap size={24} />
+                  </ActionIcon>
+                )}
+              </Group>
+            </Stack>
+          </Box>
+        </Paper>
       </Popup>
     </Marker>
   );

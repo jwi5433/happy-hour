@@ -15,6 +15,9 @@ const config = {
     // Warning: This allows production builds to successfully complete even with TypeScript errors
     ignoreBuildErrors: true,
   },
+  experimental: {
+    optimizePackageImports: ['@mantine/core', '@mantine/hooks'],
+  },
 };
 
 export default config;

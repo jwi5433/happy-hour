@@ -6,17 +6,20 @@ import { useMap } from 'react-leaflet';
 import { happyHourVenues } from 'src/server/db/schema';
 import { InferSelectModel } from 'drizzle-orm';
 import L from 'leaflet';
-import { Search, X } from 'react-feather';
+import { ActionIcon, TextInput, Paper, List, Text, useMantineTheme } from '@mantine/core';
+import { IconSearch, IconX } from '@tabler/icons-react';
 
 type Restaurant = InferSelectModel<typeof happyHourVenues>;
 
 interface SearchControlProps {
   restaurants: Restaurant[];
   onSearchResults?: (results: Restaurant[]) => void;
+  onRestaurantSelect?: (restaurant: Restaurant) => void;
 }
 
-const SearchControl: React.FC<SearchControlProps> = ({ restaurants, onSearchResults }) => {
+const SearchControl: React.FC<SearchControlProps> = ({ restaurants, onSearchResults, onRestaurantSelect }) => {
   const map = useMap();
+  const theme = useMantineTheme();
 
   const [isExpanded, setIsExpanded] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
@@ -77,14 +80,17 @@ const SearchControl: React.FC<SearchControlProps> = ({ restaurants, onSearchResu
     setShowResults(false);
     setSearchTerm('');
 
-    map.eachLayer((layer) => {
-      if (layer instanceof L.Marker && layer.getLatLng().equals([
-        restaurant.latitude ?? 0,
-        restaurant.longitude ?? 0
-      ])) {
-        layer.fire('click');
+    if (restaurant.latitude !== null && restaurant.longitude !== null) {
+      const restaurantCoords: L.LatLngTuple = [restaurant.latitude, restaurant.longitude];
+
+      map.flyTo(restaurantCoords, 15, {
+        duration: 1.2
+      });
+
+      if (onRestaurantSelect) {
+        onRestaurantSelect(restaurant);
       }
-    });
+    }
   };
 
   const toggleSearch = () => {
@@ -117,107 +123,134 @@ const SearchControl: React.FC<SearchControlProps> = ({ restaurants, onSearchResu
 
   return (
     <div className="leaflet-top leaflet-left" style={{ marginTop: '10px', marginLeft: '10px' }}>
-      <div className="leaflet-control" style={{ 
-        filter: 'drop-shadow(0 4px 8px rgba(93, 95, 239, 0.3))',
-        transition: 'transform 0.3s ease, filter 0.3s ease'
-      }}
-      onMouseOver={(e) => {
-        e.currentTarget.style.transform = 'scale(1.02)';
-        e.currentTarget.style.filter = 'drop-shadow(0 6px 10px rgba(93, 95, 239, 0.4))';
-      }}
-      onMouseOut={(e) => {
-        e.currentTarget.style.transform = 'scale(1)';
-        e.currentTarget.style.filter = 'drop-shadow(0 4px 8px rgba(93, 95, 239, 0.3))';
-      }}>
-        <div
-          className={`flex items-center rounded-2xl transition-all duration-300 ease-in-out ${isExpanded ? 'w-full sm:w-72' : 'w-14'} relative overflow-visible`}
-          style={{ 
+      <div className="leaflet-control">
+        <Paper
+          shadow="md"
+          radius="xl"
+          p={0}
+          style={{
+            backgroundColor: theme.colors.dark[6],
+            transition: 'all 0.3s ease',
             height: '50px',
-            backgroundColor: 'var(--dark-bg-primary)'
+            width: isExpanded ? '18rem' : '56px',
+            display: 'flex',
+            alignItems: 'center',
+            overflow: 'visible',
+            position: 'relative',
+          }}
+          onMouseOver={(e) => {
+            e.currentTarget.style.transform = 'scale(1.02)';
+            e.currentTarget.style.boxShadow = theme.shadows.lg;
+          }}
+          onMouseOut={(e) => {
+            e.currentTarget.style.transform = 'scale(1)';
+            e.currentTarget.style.boxShadow = theme.shadows.md;
           }}
         >
-          <button
+          <ActionIcon
             onClick={toggleSearch}
-            className="flex-shrink-0 p-2 focus:outline-none h-full"
-            aria-label={isExpanded ? "Close search" : "Open search"}
-            title={isExpanded ? "Close search" : "Open search"}
-            style={{ 
+            variant="transparent"
+            color={theme.primaryColor}
+            size="xl"
+            radius="xl"
+            style={{
               width: '56px',
-              display: 'flex', 
-              alignItems: 'center', 
+              height: '100%',
+              display: 'flex',
+              alignItems: 'center',
               justifyContent: 'center',
-              color: 'var(--dark-accent)',
-              transition: 'color 0.3s ease, background-color 0.3s ease',
-              borderRadius: '12px'
+              transition: 'all 0.3s ease',
             }}
             onMouseOver={(e) => {
-              e.currentTarget.style.backgroundColor = 'var(--dark-accent)';
-              e.currentTarget.style.color = 'white';
+              e.currentTarget.style.backgroundColor = theme.colors.blue[7];
+              e.currentTarget.style.color = theme.white;
               e.currentTarget.style.transform = 'scale(1.05)';
-              const svg = e.currentTarget.querySelector('svg');
-              if (svg) svg.style.color = 'white';
             }}
             onMouseOut={(e) => {
               e.currentTarget.style.backgroundColor = 'transparent';
-              e.currentTarget.style.color = 'var(--dark-accent)';
+              e.currentTarget.style.color = theme.colors.blue[5];
               e.currentTarget.style.transform = 'scale(1)';
             }}
+            aria-label={isExpanded ? 'Close search' : 'Open search'}
           >
-            <Search className="h-7 w-7" />
-          </button>
+            <IconSearch size={24} />
+          </ActionIcon>
 
           {isExpanded && (
-            <>
-              <input
+            <div style={{ display: 'flex', flex: 1, position: 'relative' }}>
+              <TextInput
                 ref={inputRef}
-                type="text"
                 value={searchTerm}
                 onChange={handleInputChange}
                 onFocus={handleInputFocus}
-                placeholder="Search happy hours..."
+                placeholder="  Search happy hours..."
                 aria-label="Search happy hours"
+                variant="unstyled"
                 style={{
-                  width: '100%',
-                  padding: '8px 4px',
-                  fontSize: '0.875rem',
-                  backgroundColor: 'transparent',
-                  color: 'var(--dark-text-primary)',
-                  border: 'none',
-                  outline: 'none'
+                  flex: 1,
                 }}
+                styles={{
+                  input: {
+                    color: theme.colors.gray[0],
+                    '&::placeholder': {
+                      color: theme.colors.gray[5],
+                    },
+                  },
+                }}
+                rightSection={
+                  searchTerm ? (
+                    <ActionIcon onClick={handleClearSearch} variant="transparent" color="gray">
+                      <IconX size={16} />
+                    </ActionIcon>
+                  ) : null
+                }
               />
 
-              {searchTerm && (
-                <button
-                  onClick={handleClearSearch}
-                  className="flex-shrink-0 p-2 text-blue-400 hover:text-blue-300 focus:outline-none"
-                  aria-label="Clear search"
-                  title="Clear search"
-                >
-                  <X className="h-6 w-6" />
-                </button>
-              )}
               {showResults && matches.length > 0 && (
-                <div
+                <Paper
                   ref={resultsRef}
-                  className="absolute left-0 top-full z-[1000] mt-1 max-h-60 w-full overflow-y-auto rounded-md bg-gray-800 shadow-lg"
+                  shadow="md"
+                  radius="md"
+                  p="xs"
+                  bg={theme.colors.dark[7]}
+                  style={{
+                    position: 'absolute',
+                    top: 'calc(100% + 8px)',
+                    left: 0,
+                    right: 0,
+                    zIndex: 1000,
+                    maxHeight: '15rem',
+                    overflow: 'auto',
+                  }}
                 >
-                  <ul className="py-1">
+                  <List spacing="xs">
                     {matches.map((restaurant) => (
-                      <li
+                      <List.Item
                         key={restaurant.id}
                         onClick={() => handleRestaurantClick(restaurant)}
-                        className="cursor-pointer px-4 py-2 text-sm text-gray-200 hover:bg-gray-700"
+                        style={{
+                          padding: theme.spacing.xs,
+                          borderRadius: theme.radius.sm,
+                          cursor: 'pointer',
+                        }}
+                        onMouseOver={(e) => {
+                          e.currentTarget.style.backgroundColor = theme.colors.dark[5];
+                        }}
+                        onMouseOut={(e) => {
+                          e.currentTarget.style.backgroundColor = 'transparent';
+                        }}
                       >
-                        {restaurant.name}
-                      </li>
+                        <Text size="sm" c={theme.colors.gray[0]}>
+                          {restaurant.name}
+                        </Text>
+                      </List.Item>
                     ))}
-                  </ul>
-                </div>
+                  </List>
+                </Paper>
               )}
-            </>
+            </div>
           )}
-        </div>
+        </Paper>
       </div>
     </div>
   );

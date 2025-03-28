@@ -1,55 +1,62 @@
 'use client';
 
-import { useState } from 'react';
+import { Tabs, Text, Paper, Group, useMantineTheme } from '@mantine/core';
 import { Deal } from '../../../types/happy-hour';
+import { useState } from 'react';
 
 interface DealsDisplayProps {
   deals: Deal[] | null;
 }
 
 const DealsDisplay: React.FC<DealsDisplayProps> = ({ deals = null }) => {
-  const [activeTab, setActiveTab] = useState<'drinks' | 'food'>('drinks');
+  const theme = useMantineTheme();
+  const [hoverTab, setHoverTab] = useState<string | null>(null);
 
   if (!deals || deals.length === 0) {
-    return <p className="text-sm text-gray-400">No deals listed</p>;
+    return (
+      <Text size="xs" c={theme.colors.gray[5]}>
+        No deals listed
+      </Text>
+    );
   }
 
   const validDeals = deals.filter((deal) => {
     if (!deal.name || !deal.price) return false;
-    
+
     if (typeof deal.price === 'string') {
       const percentMatch = deal.price.match(/(\d+)%/);
       if (percentMatch && percentMatch[1]) {
         const percentValue = parseInt(percentMatch[1], 10);
-        
+
         if (percentValue > 80) {
           return false;
         }
       }
-      
+
       if (
-        deal.price.toLowerCase().includes('free') || 
+        deal.price.toLowerCase().includes('free') ||
         deal.price.toLowerCase().includes('100% off')
       ) {
         return false;
       }
     }
-    
+
     return true;
   });
 
   if (validDeals.length === 0) {
-    return <p className="text-sm text-gray-400">No valid deals available</p>;
+    return (
+      <Text size="xs" c={theme.colors.gray[5]}>
+        No valid deals available
+      </Text>
+    );
   }
 
   const uniqueDeals = validDeals.filter(
     (deal, index, self) =>
       index ===
       self.findIndex(
-        (d) => 
-          d.category === deal.category && 
-          d.name === deal.name && 
-          d.price === deal.price
+        (d) => d.category === deal.category && d.name === deal.name && d.price === deal.price
       )
   );
 
@@ -57,83 +64,155 @@ const DealsDisplay: React.FC<DealsDisplayProps> = ({ deals = null }) => {
   const foodDeals = uniqueDeals.filter((deal) => deal.category === 'Food');
 
   return (
-    <div className="mt-2">
-      <div className="flex border-b border-gray-600 mb-2">
-        <button
-          className={`px-3 py-1.5 text-xs font-medium transition-colors duration-150 rounded-t-md ${
-            activeTab === 'drinks'
-              ? 'bg-blue-600 text-white'
-              : 'text-gray-200 hover:text-white hover:bg-gray-600'
-          }`}
-          onClick={() => setActiveTab('drinks')}
+    <Tabs
+      defaultValue="drinks"
+      styles={(theme) => ({
+        tab: {
+          padding: '4px 8px',
+          fontSize: '14px',
+          fontWeight: 500,
+          color: 'white',
+          transition: 'all 0.3s ease',
+          '&[data-active="true"]': {
+            backgroundColor: theme.colors.blue[7],
+            color: 'white',
+            fontWeight: 500,
+          },
+        },
+        list: { 
+          marginBottom: 2,
+          borderBottom: `2px solid ${theme.colors.dark[4]}`
+        },
+        panel: { paddingTop: 2 },
+      })}
+    >
+      <Tabs.List grow>
+        <Tabs.Tab
+          value="drinks"
+          onMouseEnter={() => setHoverTab('drinks')}
+          onMouseLeave={() => setHoverTab(null)}
+          style={{
+            backgroundColor: hoverTab === 'drinks' ? theme.colors.blue[7] : undefined,
+            color: hoverTab === 'drinks' ? 'white' : 'white',
+            transform: hoverTab === 'drinks' ? 'scale(1.05)' : undefined,
+            boxShadow: hoverTab === 'drinks' ? theme.shadows.sm : 'none',
+          }}
         >
           Drinks ({drinkDeals.length})
-        </button>
-        <button
-          className={`px-3 py-1.5 text-xs font-medium transition-colors duration-150 rounded-t-md ml-1 ${
-            activeTab === 'food'
-              ? 'bg-blue-600 text-white'
-              : 'text-gray-200 hover:text-white hover:bg-gray-600'
-          }`}
-          onClick={() => setActiveTab('food')}
+        </Tabs.Tab>
+        <Tabs.Tab
+          value="food"
+          onMouseEnter={() => setHoverTab('food')}
+          onMouseLeave={() => setHoverTab(null)}
+          style={{
+            backgroundColor: hoverTab === 'food' ? theme.colors.blue[7] : undefined,
+            color: hoverTab === 'food' ? 'white' : 'white',
+            transform: hoverTab === 'food' ? 'scale(1.05)' : undefined,
+            boxShadow: hoverTab === 'food' ? theme.shadows.sm : 'none',
+          }}
         >
           Food ({foodDeals.length})
-        </button>
-      </div>
-      {activeTab === 'drinks' && drinkDeals.length > 0 && (
-        <div className="rounded-lg bg-gray-600 p-2.5 shadow-sm">
-          <div className="max-h-32 overflow-y-auto pr-1 scrollbar-thin">
-            <ul className="space-y-1">
+        </Tabs.Tab>
+      </Tabs.List>
+
+      <Tabs.Panel value="drinks">
+        {drinkDeals.length > 0 ? (
+          <Paper bg={theme.colors.dark[5]} p={1} withBorder={false}>
+            <div
+              style={{
+                maxHeight: '14rem',
+                overflowY: 'auto',
+              }}
+            >
               {drinkDeals.map((deal, index) => (
-                <li key={index} className="flex items-center justify-between py-0.5 border-b border-gray-600 last:border-b-0">
-                  <span className="text-sm text-gray-200" style={{ maxWidth: '70%', wordBreak: 'break-word' }}>
+                <Group key={index} justify="space-between" wrap="nowrap" mb={1}>
+                  <Text
+                    fw={500}
+                    size="sm"
+                    c={theme.colors.gray[0]}
+                    style={{
+                      maxWidth: '65%',
+                      wordBreak: 'break-word',
+                      lineHeight: 1.3,
+                    }}
+                  >
                     {deal.name}
-                  </span>
-                  <span className="rounded-md px-2 py-1 text-sm font-bold whitespace-nowrap ml-2"
-                    style={{ 
-                      backgroundColor: 'var(--dark-bg-primary)',
-                      color: 'white'
-                    }}>
+                  </Text>
+                  <div
+                    style={{
+                      backgroundColor: theme.colors.blue[9],
+                      color: theme.colors.gray[0],
+                      padding: '1px 5px',
+                      borderRadius: '4px',
+                      fontSize: '13px',
+                      fontWeight: 600,
+                      minWidth: '45px',
+                      textAlign: 'center',
+                      lineHeight: 1.5,
+                    }}
+                  >
                     {deal.price}
-                  </span>
-                </li>
+                  </div>
+                </Group>
               ))}
-            </ul>
-          </div>
-        </div>
-      )}
+            </div>
+          </Paper>
+        ) : (
+          <Text size="xs" c={theme.colors.gray[5]}>
+            No drink deals available
+          </Text>
+        )}
+      </Tabs.Panel>
 
-      {activeTab === 'food' && foodDeals.length > 0 && (
-        <div className="rounded-lg bg-gray-700 p-2.5 shadow-sm">
-          <div className="max-h-32 overflow-y-auto pr-1 scrollbar-thin">
-            <ul className="space-y-1">
+      <Tabs.Panel value="food">
+        {foodDeals.length > 0 ? (
+          <Paper bg={theme.colors.dark[5]} p={1} withBorder={false}>
+            <div
+              style={{
+                maxHeight: '14rem',
+                overflowY: 'auto',
+              }}
+            >
               {foodDeals.map((deal, index) => (
-                <li key={index} className="flex items-center justify-between py-0.5 border-b border-gray-600 last:border-b-0">
-                  <span className="text-sm text-gray-200" style={{ maxWidth: '70%', wordBreak: 'break-word' }}>
+                <Group key={index} justify="space-between" wrap="nowrap" mb={1}>
+                  <Text
+                    fw={500}
+                    size="sm"
+                    c={theme.colors.gray[0]}
+                    style={{
+                      maxWidth: '65%',
+                      wordBreak: 'break-word',
+                      lineHeight: 1.3,
+                    }}
+                  >
                     {deal.name}
-                  </span>
-                  <span className="rounded-md px-2 py-1 text-sm font-bold whitespace-nowrap ml-2"
-                    style={{ 
-                      backgroundColor: 'var(--dark-bg-primary)',
-                      color: 'white'
-                    }}>
+                  </Text>
+                  <div
+                    style={{
+                      backgroundColor: theme.colors.blue[6],
+                      color: theme.colors.gray[0],
+                      padding: '1px 5px',
+                      borderRadius: '4px',
+                      fontSize: '13px',
+                      fontWeight: 600,
+                      minWidth: '55px',
+                      textAlign: 'center',
+                      lineHeight: 1.5,
+                    }}
+                  >
                     {deal.price}
-                  </span>
-                </li>
+                  </div>
+                </Group>
               ))}
-            </ul>
-          </div>
-        </div>
-      )}
-
-      {activeTab === 'drinks' && drinkDeals.length === 0 && (
-        <p className="text-sm text-gray-400">No drink deals available</p>
-      )}
-
-      {activeTab === 'food' && foodDeals.length === 0 && (
-        <p className="text-sm text-gray-400">No food deals available</p>
-      )}
-    </div>
+            </div>
+          </Paper>
+        ) : (
+          <Text size="xs" c={theme.colors.gray[5]}>
+            No food deals available
+          </Text>
+        )}
+      </Tabs.Panel>
+    </Tabs>
   );
 };
 

@@ -35,6 +35,7 @@ const MapComponent = ({
   );
   const [mapKey, setMapKey] = useState<number>(0);
   const [isChatOpen, setIsChatOpen] = useState<boolean>(false);
+  const [selectedRestaurantId, setSelectedRestaurantId] = useState<string | null>(null);
 
   useEffect(() => {
     if (initialUserPosition) {
@@ -50,7 +51,6 @@ const MapComponent = ({
   }, [restaurants]);
 
   useEffect(() => {
-    // This fixes the missing icon issue in production
     delete (L.Icon.Default.prototype as any)._getIconUrl;
     
     L.Icon.Default.mergeOptions({
@@ -81,13 +81,18 @@ const MapComponent = ({
     setLocationError(null);
   };
 
+  const handleRestaurantSelect = (restaurant: HappyHourVenue) => {
+    setSelectedRestaurantId(restaurant.id);
+  };
+
   return (
-    <div className={className}>
+    <div className={className} style={{ height: '100%', width: '100%', position: 'relative' }}>
       <MapContainer
         key={mapKey}
         center={mapCenter}
         zoom={13}
         scrollWheelZoom={true}
+        style={{ height: '100%', width: '100%' }} 
         className="h-full w-full"
         zoomControl={false}
       >
@@ -95,20 +100,21 @@ const MapComponent = ({
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
-        
+
         <CustomZoomControl position="topright" />
-        
-        <LocationButton
-          onLocationRequest={handleLocationRequest}
+
+        <LocationButton onLocationRequest={handleLocationRequest} />
+
+        <SearchControl 
+          restaurants={restaurants} 
+          onRestaurantSelect={handleRestaurantSelect} 
         />
-        
-        <SearchControl restaurants={restaurants} />
-        
+
         <LocationTracker
           onLocationFound={handleLocationFound}
           onLocationError={handleLocationError}
         />
-        
+
         <ZoomFilterControl
           restaurants={restaurants}
           setVisibleRestaurants={setVisibleRestaurants}
@@ -116,8 +122,11 @@ const MapComponent = ({
         />
 
         {userPosition && <UserLocationMarker position={userPosition} />}
-        
-        <RestaurantMarkers restaurants={visibleRestaurants} />
+
+        <RestaurantMarkers 
+          restaurants={visibleRestaurants} 
+          selectedRestaurantId={selectedRestaurantId}
+        />
 
         {isChatOpen && <AiChat isOpen={isChatOpen} onClose={() => setIsChatOpen(false)} />}
         <ChatButton onClick={() => setIsChatOpen(!isChatOpen)} />
