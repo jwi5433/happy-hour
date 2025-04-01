@@ -1,8 +1,8 @@
 'use client';
 
+import { useState } from 'react';
 import { Tabs, Text, Paper, Group, useMantineTheme } from '@mantine/core';
 import { Deal } from '../../../types/happy-hour';
-import { useState } from 'react';
 
 interface DealsDisplayProps {
   deals: Deal[] | null;
@@ -10,7 +10,7 @@ interface DealsDisplayProps {
 
 const DealsDisplay: React.FC<DealsDisplayProps> = ({ deals = null }) => {
   const theme = useMantineTheme();
-  const [hoverTab, setHoverTab] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<string | null>('drinks');
 
   if (!deals || deals.length === 0) {
     return (
@@ -63,52 +63,63 @@ const DealsDisplay: React.FC<DealsDisplayProps> = ({ deals = null }) => {
   const drinkDeals = uniqueDeals.filter((deal) => deal.category !== 'Food');
   const foodDeals = uniqueDeals.filter((deal) => deal.category === 'Food');
 
+  const handleTabChange = (value: string | null) => {
+    setActiveTab(value);
+  };
+
   return (
     <Tabs
-      defaultValue="drinks"
-      styles={(theme) => ({
+      value={activeTab}
+      onChange={handleTabChange}
+      styles={{
         tab: {
           padding: '4px 8px',
           fontSize: '14px',
           fontWeight: 500,
-          color: 'white',
+          color: theme.white, 
           transition: 'all 0.3s ease',
-          '&[data-active="true"]': {
+          '&:hover': {
             backgroundColor: theme.colors.blue[7],
-            color: 'white',
-            fontWeight: 500,
+            transform: 'scale(1.05)',
           },
         },
-        list: { 
-          marginBottom: 2,
-          borderBottom: `2px solid ${theme.colors.dark[4]}`
-        },
+        list: { marginBottom: 2 },
         panel: { paddingTop: 2 },
-      })}
+      }}
     >
       <Tabs.List grow>
         <Tabs.Tab
           value="drinks"
-          onMouseEnter={() => setHoverTab('drinks')}
-          onMouseLeave={() => setHoverTab(null)}
           style={{
-            backgroundColor: hoverTab === 'drinks' ? theme.colors.blue[7] : undefined,
-            color: hoverTab === 'drinks' ? 'white' : 'white',
-            transform: hoverTab === 'drinks' ? 'scale(1.05)' : undefined,
-            boxShadow: hoverTab === 'drinks' ? theme.shadows.sm : 'none',
+            backgroundColor: activeTab === 'drinks' ? theme.colors.blue[7] : undefined,
+          }}
+          onMouseOver={(e) => {
+            e.currentTarget.style.backgroundColor = theme.colors.blue[7];
+            e.currentTarget.style.transform = 'scale(1.05)';
+          }}
+          onMouseOut={(e) => {
+            if (activeTab !== 'drinks') {
+              e.currentTarget.style.backgroundColor = '';
+              e.currentTarget.style.transform = 'scale(1)';
+            }
           }}
         >
           Drinks ({drinkDeals.length})
         </Tabs.Tab>
         <Tabs.Tab
           value="food"
-          onMouseEnter={() => setHoverTab('food')}
-          onMouseLeave={() => setHoverTab(null)}
           style={{
-            backgroundColor: hoverTab === 'food' ? theme.colors.blue[7] : undefined,
-            color: hoverTab === 'food' ? 'white' : 'white',
-            transform: hoverTab === 'food' ? 'scale(1.05)' : undefined,
-            boxShadow: hoverTab === 'food' ? theme.shadows.sm : 'none',
+            backgroundColor: activeTab === 'food' ? theme.colors.blue[7] : undefined,
+          }}
+          onMouseOver={(e) => {
+            e.currentTarget.style.backgroundColor = theme.colors.blue[7];
+            e.currentTarget.style.transform = 'scale(1.05)';
+          }}
+          onMouseOut={(e) => {
+            if (activeTab !== 'food') {
+              e.currentTarget.style.backgroundColor = '';
+              e.currentTarget.style.transform = 'scale(1)';
+            }
           }}
         >
           Food ({foodDeals.length})
@@ -117,7 +128,7 @@ const DealsDisplay: React.FC<DealsDisplayProps> = ({ deals = null }) => {
 
       <Tabs.Panel value="drinks">
         {drinkDeals.length > 0 ? (
-          <Paper bg={theme.colors.dark[5]} p={1} withBorder={false}>
+          <Paper bg={theme.colors.dark[5]} p={2} withBorder={false}>
             <div
               style={{
                 maxHeight: '14rem',
@@ -125,7 +136,7 @@ const DealsDisplay: React.FC<DealsDisplayProps> = ({ deals = null }) => {
               }}
             >
               {drinkDeals.map((deal, index) => (
-                <Group key={index} justify="space-between" wrap="nowrap" mb={1}>
+                <Group key={index} justify="space-between" wrap="nowrap" mb={2}>
                   <Text
                     fw={500}
                     size="sm"
@@ -140,13 +151,13 @@ const DealsDisplay: React.FC<DealsDisplayProps> = ({ deals = null }) => {
                   </Text>
                   <div
                     style={{
-                      backgroundColor: theme.colors.blue[9],
-                      color: theme.colors.gray[0],
+                      backgroundColor: theme.colors.blue[8], 
+                      color: theme.white,
                       padding: '1px 5px',
                       borderRadius: '4px',
                       fontSize: '13px',
                       fontWeight: 600,
-                      minWidth: '45px',
+                      minWidth: '55px',
                       textAlign: 'center',
                       lineHeight: 1.5,
                     }}
@@ -166,7 +177,7 @@ const DealsDisplay: React.FC<DealsDisplayProps> = ({ deals = null }) => {
 
       <Tabs.Panel value="food">
         {foodDeals.length > 0 ? (
-          <Paper bg={theme.colors.dark[5]} p={1} withBorder={false}>
+          <Paper bg={theme.colors.dark[5]} p={2} withBorder={false}>
             <div
               style={{
                 maxHeight: '14rem',
@@ -174,7 +185,7 @@ const DealsDisplay: React.FC<DealsDisplayProps> = ({ deals = null }) => {
               }}
             >
               {foodDeals.map((deal, index) => (
-                <Group key={index} justify="space-between" wrap="nowrap" mb={1}>
+                <Group key={index} justify="space-between" wrap="nowrap" mb={2}>
                   <Text
                     fw={500}
                     size="sm"
@@ -189,8 +200,8 @@ const DealsDisplay: React.FC<DealsDisplayProps> = ({ deals = null }) => {
                   </Text>
                   <div
                     style={{
-                      backgroundColor: theme.colors.blue[6],
-                      color: theme.colors.gray[0],
+                      backgroundColor: theme.colors.blue[8], 
+                      color: theme.white,
                       padding: '1px 5px',
                       borderRadius: '4px',
                       fontSize: '13px',

@@ -3,10 +3,10 @@
 import { useRef, useEffect } from 'react';
 import { Marker, Popup, useMap } from 'react-leaflet';
 import L from 'leaflet';
-import { Icon } from 'leaflet';
+import { Icon } from 'leaflet'; 
 import { HappyHourVenue } from 'src/server/db/schema';
 import DealsDisplay from './DealsDisplay';
-import { HappyHour, Deal } from 'src/types/happy-hour';
+import { HappyHour } from 'src/types/happy-hour';
 import formatHappyHours from 'src/utils/formatters';
 import {
   Text,
@@ -24,49 +24,79 @@ import { IconWorld, IconBrandInstagram, IconMap, IconClock } from '@tabler/icons
 interface RestaurantMarkerProps {
   restaurant: HappyHourVenue;
   isSelected?: boolean;
+  onSelect: (restaurantId: string) => void;
+  selectionSource: 'search' | 'marker' | null;
 }
 
-const RestaurantMarker: React.FC<RestaurantMarkerProps> = ({ restaurant, isSelected }) => {
+const restaurantIconOptions = {
+  iconUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon.png',
+  shadowUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-shadow.png',
+  iconSize: [25, 41] as L.PointExpression,
+  iconAnchor: [12, 41] as L.PointExpression,
+  popupAnchor: [1, -34] as L.PointExpression,
+  shadowSize: [41, 41] as L.PointExpression,
+};
+const restaurantIcon = new L.Icon(restaurantIconOptions);
+
+const RestaurantMarker: React.FC<RestaurantMarkerProps> = ({
+  restaurant,
+  isSelected,
+  onSelect,
+  selectionSource,
+}) => {
   const map = useMap();
   const markerRef = useRef<L.Marker>(null);
   const theme = useMantineTheme();
+  const popupOpenTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   if (!restaurant.latitude || !restaurant.longitude) {
     return null;
   }
-
   const position: [number, number] = [restaurant.latitude, restaurant.longitude];
+  const markerLatLng = L.latLng(position);
 
   const handleMarkerClick = () => {
-    map.closePopup();
+    if (!map) return;
+    const currentZoom = map.getZoom();
+    const targetZoom = Math.max(currentZoom, 15);
+    const desiredTopPaddingPixels = 150;
+    const zoomDiff = Math.abs(targetZoom - currentZoom);
+    const flyDuration = Math.max(0.5, Math.min(1.2, 1.2 - zoomDiff * 0.1));
+    const markerPoint = map.latLngToContainerPoint(markerLatLng);
+    const targetCenterPoint = L.point(markerPoint.x, markerPoint.y - desiredTopPaddingPixels);
+    const targetLatLng = map.containerPointToLatLng(targetCenterPoint);
 
-    const targetLatLng = L.latLng(position[0] + 0.0035, position[1]);
-
-    map.setView(targetLatLng, 15, {
-      animate: true,
-      duration: 1,
-      easeLinearity: 0.25,
-    });
-
-    setTimeout(() => {
-      markerRef.current?.openPopup();
-    }, 1000);
+    map.flyTo(targetLatLng, targetZoom, { animate: true, duration: flyDuration });
+    onSelect(restaurant.id);
   };
 
   useEffect(() => {
-    if (isSelected && restaurant.latitude && restaurant.longitude) {
-      handleMarkerClick();
+    if (popupOpenTimeoutRef.current) {
+      clearTimeout(popupOpenTimeoutRef.current);
     }
-  }, [isSelected]);
 
-  const restaurantIcon = new Icon({
-    iconUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon.png',
-    shadowUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-shadow.png',
-    iconSize: [25, 41],
-    iconAnchor: [12, 41],
-    popupAnchor: [1, -34],
-    shadowSize: [41, 41],
-  });
+    if (isSelected && markerRef.current) {
+      let openDelay: number;
+
+      if (selectionSource === 'search') {
+        openDelay = 100; 
+      } else {
+        const flyDuration = 1.2;
+      }
+
+      popupOpenTimeoutRef.current = setTimeout(() => {
+        if (markerRef.current) {
+          markerRef.current.openPopup();
+        }
+      });
+
+      return () => {
+        if (popupOpenTimeoutRef.current) {
+          clearTimeout(popupOpenTimeoutRef.current);
+        }
+      };
+    }
+  }, [isSelected, selectionSource]);
 
   const happyHours = (restaurant.happyHours as HappyHour[]) || [];
   const rawHappyHours = formatHappyHours ? formatHappyHours(happyHours) : '';
@@ -77,94 +107,90 @@ const RestaurantMarker: React.FC<RestaurantMarkerProps> = ({ restaurant, isSelec
   const parsedHappyHours = happyHoursLines.map((line) => {
     const parts = line.split('•');
     if (parts.length < 2) return { days: line, times: '' };
-
     const days = parts[0]?.replace(/<\/?[^>]+(>|$)/g, '').trim() || '';
     const times = parts[1]?.replace(/<\/?[^>]+(>|$)/g, '').trim() || '';
-    
-    return {
-      days,
-      times,
-    };
+    return { days, times };
   });
 
   return (
     <Marker
       ref={markerRef}
       position={position}
-      icon={restaurantIcon}
-      eventHandlers={{
-        click: handleMarkerClick,
-      }}
+      icon={restaurantIcon} 
+      eventHandlers={{ click: handleMarkerClick }}
     >
-      <Popup className="dark-theme-popup" minWidth={500} maxWidth={550} pane="popupPane">
+      <Popup className="custom-mantine-popup" autoPan={false} closeOnClick={true}>
         <Paper
           p={0}
-          w="100%"
           radius="md"
           bg={theme.colors.dark[6]}
           withBorder={false}
           style={{
             overflow: 'hidden',
-            boxShadow: 'none',
-            border: 'none'
           }}
         >
           <Box
             py="xs"
-            px="md"
+            px="sm"
             ta="center"
             style={{ borderBottom: `1px solid ${theme.colors.dark[4]}` }}
           >
-            <Title order={4} c={theme.colors.gray[0]}>
+            <Title order={5} c={theme.colors.gray[0]} lineClamp={2}>
               {restaurant.name}
             </Title>
           </Box>
-
           <Box py="xs" px="sm">
-            <Stack gap={2}>
-              <Box
-                py={4}
-                px={8}
-                style={{
-                  borderRadius: theme.radius.sm,
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                }}
-              >
-                <IconClock size={16} color={theme.colors.gray[0]} style={{ marginRight: 6 }} />
-                <Text fw={500} size="14px" c={theme.colors.gray[0]}>
-                  Hours
-                </Text>
-              </Box>
-
-              {parsedHappyHours?.length > 0 && parsedHappyHours[0]?.days !== 'No happy hours listed' ? (
-                <Paper bg={theme.colors.dark[5]} p="xs" mb={2} withBorder={false} style={{ border: 'none' }}>
-                  <Stack gap={4} w="100%">
-                    {parsedHappyHours.map((hour, index) => (
-                      <Flex key={index} align="center" justify="space-between" w="100%">
-                        <Text fw={500} c={theme.colors.gray[1]} size="xs" style={{ marginRight: 'auto' }}>
-                          {hour.days}
-                        </Text>
-                        {hour.times && (
-                          <Text c={theme.colors.blue[4]} size="xs" fw={500} style={{ textAlign: 'right', minWidth: '120px' }}>
-                            {hour.times}
+            <Stack gap="xs">
+              <Box>
+                <Group gap={6} mb={4} wrap="nowrap">
+                  <IconClock size={16} color={theme.colors.gray[0]} style={{ flexShrink: 0 }} />
+                  <Text fw={500} size="sm" c={theme.colors.gray[0]}>
+                    Hours
+                  </Text>
+                </Group>
+                {parsedHappyHours?.length > 0 &&
+                parsedHappyHours[0]?.days !== 'No happy hours listed' ? (
+                  <Paper
+                    bg={theme.colors.dark[5]}
+                    p="xs"
+                    radius="sm"
+                    withBorder={false}
+                    style={{
+                      maxHeight: '90px',
+                      overflowY: 'auto',
+                      border: `1px solid ${theme.colors.dark[4]}`,
+                    }}
+                  >
+                    <Stack gap={4}>
+                      {parsedHappyHours.map((hour, index) => (
+                        <Flex key={index} justify="space-between" align="flex-start" gap="xs">
+                          <Text
+                            fw={500}
+                            c={theme.colors.gray[1]}
+                            size="xs"
+                            style={{ flexShrink: 0 }}
+                          >
+                            {hour.days}
                           </Text>
-                        )}
-                      </Flex>
-                    ))}
-                  </Stack>
-                </Paper>
-              ) : (
-                <Text size="sm" c={theme.colors.gray[4]} p="xs">
-                  No happy hours listed
-                </Text>
-              )}
-
+                          {hour.times && (
+                            <Text c={theme.colors.blue[4]} size="xs" fw={500} ta="right">
+                              {hour.times}
+                            </Text>
+                          )}
+                        </Flex>
+                      ))}
+                    </Stack>
+                  </Paper>
+                ) : (
+                  <Text size="xs" c={theme.colors.gray[4]} p="xs">
+                    No happy hours listed
+                  </Text>
+                )}
+              </Box>
               {Array.isArray(restaurant.deals) && restaurant.deals.length > 0 && (
                 <DealsDisplay deals={restaurant.deals} />
               )}
-
-              <Group justify="center" gap="xs" mt={2}>
+              <Group justify="center" gap="sm" mt="xs">
                 {restaurant.websiteUrl && (
                   <ActionIcon
                     component="a"
@@ -174,7 +200,7 @@ const RestaurantMarker: React.FC<RestaurantMarkerProps> = ({ restaurant, isSelec
                     variant="outline"
                     color="blue"
                     radius="xl"
-                    size={44}
+                    size="lg"
                     bg={theme.colors.dark[5]}
                     style={{
                       border: `1px solid ${theme.colors.dark[4]}`,
@@ -194,10 +220,9 @@ const RestaurantMarker: React.FC<RestaurantMarkerProps> = ({ restaurant, isSelec
                     }}
                     title="Website"
                   >
-                    <IconWorld size={24} />
+                    <IconWorld size="1.25rem" />
                   </ActionIcon>
                 )}
-
                 {restaurant.instagramUrl && (
                   <ActionIcon
                     component="a"
@@ -207,7 +232,7 @@ const RestaurantMarker: React.FC<RestaurantMarkerProps> = ({ restaurant, isSelec
                     variant="outline"
                     color="blue"
                     radius="xl"
-                    size={44}
+                    size="lg"
                     bg={theme.colors.dark[5]}
                     style={{
                       border: `1px solid ${theme.colors.dark[4]}`,
@@ -227,10 +252,9 @@ const RestaurantMarker: React.FC<RestaurantMarkerProps> = ({ restaurant, isSelec
                     }}
                     title="Instagram"
                   >
-                    <IconBrandInstagram size={24} />
+                    <IconBrandInstagram size="1.25rem" />
                   </ActionIcon>
                 )}
-
                 {restaurant.googlemapsUrl && (
                   <ActionIcon
                     component="a"
@@ -240,7 +264,7 @@ const RestaurantMarker: React.FC<RestaurantMarkerProps> = ({ restaurant, isSelec
                     variant="outline"
                     color="blue"
                     radius="xl"
-                    size={44}
+                    size="lg"
                     bg={theme.colors.dark[5]}
                     style={{
                       border: `1px solid ${theme.colors.dark[4]}`,
@@ -260,7 +284,7 @@ const RestaurantMarker: React.FC<RestaurantMarkerProps> = ({ restaurant, isSelec
                     }}
                     title="Directions"
                   >
-                    <IconMap size={24} />
+                    <IconMap size="1.25rem" />
                   </ActionIcon>
                 )}
               </Group>

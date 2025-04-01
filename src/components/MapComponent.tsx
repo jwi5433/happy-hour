@@ -8,11 +8,16 @@ import LocationButton from './map/controls/locationButton';
 import LocationTracker from './map/tracking/locationTracker';
 import SearchControl from './map/controls/searchControls';
 import ZoomFilterControl from './map/controls/zoomFilterControls';
-import { UserLocationMarker, RestaurantMarkers } from './map/markers';
+import { UserLocationMarker, RestaurantMarkers } from './map/markers'; 
 import AiChat from './AiChat';
 import ChatButton from './map/controls/chatButton';
 import CustomZoomControl from './map/controls/customZoomControl';
 import L from 'leaflet';
+
+interface SelectionInfo {
+  id: string | null;
+  source: 'search' | 'marker' | null;
+}
 
 interface MapComponentProps {
   className?: string;
@@ -26,7 +31,7 @@ const MapComponent = ({
   restaurants = [],
   initialUserPosition = null,
 }: MapComponentProps) => {
-  const defaultCenter: [number, number] = [30.2672, -97.7431]; // Austin coordinates
+  const defaultCenter: [number, number] = [30.2672, -97.7431];
   const [userPosition, setUserPosition] = useState<[number, number] | null>(initialUserPosition);
   const [locationError, setLocationError] = useState<string | null>(null);
   const [visibleRestaurants, setVisibleRestaurants] = useState<HappyHourVenue[]>([]);
@@ -35,7 +40,7 @@ const MapComponent = ({
   );
   const [mapKey, setMapKey] = useState<number>(0);
   const [isChatOpen, setIsChatOpen] = useState<boolean>(false);
-  const [selectedRestaurantId, setSelectedRestaurantId] = useState<string | null>(null);
+  const [selectionInfo, setSelectionInfo] = useState<SelectionInfo>({ id: null, source: null });
 
   useEffect(() => {
     if (initialUserPosition) {
@@ -52,9 +57,9 @@ const MapComponent = ({
 
   useEffect(() => {
     delete (L.Icon.Default.prototype as any)._getIconUrl;
-    
     L.Icon.Default.mergeOptions({
-      iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
+      iconRetinaUrl:
+        'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
       iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
       shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
     });
@@ -62,10 +67,8 @@ const MapComponent = ({
 
   const handleLocationFound = (position: [number, number]) => {
     setUserPosition(position);
-
     const [lat, lng] = position;
     const isInAustin = lat > 30.05 && lat < 30.55 && lng > -98.05 && lng < -97.45;
-
     if (isInAustin) {
       setMapCenter(position);
     } else {
@@ -81,8 +84,12 @@ const MapComponent = ({
     setLocationError(null);
   };
 
-  const handleRestaurantSelect = (restaurant: HappyHourVenue) => {
-    setSelectedRestaurantId(restaurant.id);
+  const handleMarkerSelection = (restaurantId: string | null) => {
+    setSelectionInfo({ id: restaurantId, source: 'marker' });
+  };
+
+  const handleRestaurantSelectFromSearch = (restaurant: HappyHourVenue) => {
+    setSelectionInfo({ id: restaurant.id, source: 'search' });
   };
 
   return (
@@ -92,22 +99,21 @@ const MapComponent = ({
         center={mapCenter}
         zoom={13}
         scrollWheelZoom={true}
-        style={{ height: '100%', width: '100%' }} 
+        style={{ height: '100%', width: '100%' }}
         className="h-full w-full"
         zoomControl={false}
       >
         <TileLayer
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+          attribution='© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
 
         <CustomZoomControl position="topright" />
-
         <LocationButton onLocationRequest={handleLocationRequest} />
 
-        <SearchControl 
-          restaurants={restaurants} 
-          onRestaurantSelect={handleRestaurantSelect} 
+        <SearchControl
+          restaurants={restaurants}
+          onRestaurantSelect={handleRestaurantSelectFromSearch}
         />
 
         <LocationTracker
@@ -123,9 +129,11 @@ const MapComponent = ({
 
         {userPosition && <UserLocationMarker position={userPosition} />}
 
-        <RestaurantMarkers 
-          restaurants={visibleRestaurants} 
-          selectedRestaurantId={selectedRestaurantId}
+        <RestaurantMarkers
+          restaurants={visibleRestaurants}
+          selectedRestaurantId={selectionInfo.id} 
+          selectionSource={selectionInfo.source} 
+          onMarkerSelect={handleMarkerSelection} 
         />
 
         {isChatOpen && <AiChat isOpen={isChatOpen} onClose={() => setIsChatOpen(false)} />}

@@ -17,7 +17,11 @@ interface SearchControlProps {
   onRestaurantSelect?: (restaurant: Restaurant) => void;
 }
 
-const SearchControl: React.FC<SearchControlProps> = ({ restaurants, onSearchResults, onRestaurantSelect }) => {
+const SearchControl: React.FC<SearchControlProps> = ({
+  restaurants,
+  onSearchResults,
+  onRestaurantSelect,
+}) => {
   const map = useMap();
   const theme = useMantineTheme();
 
@@ -57,7 +61,6 @@ const SearchControl: React.FC<SearchControlProps> = ({ restaurants, onSearchResu
         setShowResults(false);
       }
     };
-
     document.addEventListener('mousedown', handleClickOutside);
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
@@ -68,9 +71,7 @@ const SearchControl: React.FC<SearchControlProps> = ({ restaurants, onSearchResu
     if (!term.trim() || term.trim().length < 2) {
       return [];
     }
-
     const normalizedTerm = term.toLowerCase().trim();
-
     return allRestaurants.filter((restaurant) =>
       restaurant.name.toLowerCase().includes(normalizedTerm)
     );
@@ -80,23 +81,31 @@ const SearchControl: React.FC<SearchControlProps> = ({ restaurants, onSearchResu
     setShowResults(false);
     setSearchTerm('');
 
-    if (restaurant.latitude !== null && restaurant.longitude !== null) {
-      const restaurantCoords: L.LatLngTuple = [restaurant.latitude, restaurant.longitude];
+    if (restaurant.latitude !== null && restaurant.longitude !== null && map) {
+      const restaurantLatLng = L.latLng(restaurant.latitude, restaurant.longitude);
+      const targetZoom = Math.max(map.getZoom(), 15);
+      const desiredTopPaddingPixels = 150;
+      const flyDuration = 1.0;
 
-      map.flyTo(restaurantCoords, 15, {
-        duration: 1.2
+      const markerPoint = map.latLngToContainerPoint(restaurantLatLng);
+      const targetCenterPoint = L.point(markerPoint.x, markerPoint.y - desiredTopPaddingPixels);
+      const targetLatLng = map.containerPointToLatLng(targetCenterPoint);
+
+      map.flyTo(targetLatLng, targetZoom, {
+        animate: true,
+        duration: flyDuration,
       });
 
       if (onRestaurantSelect) {
         onRestaurantSelect(restaurant);
       }
     }
+    setIsExpanded(false);
   };
 
   const toggleSearch = () => {
     const newExpandedState = !isExpanded;
     setIsExpanded(newExpandedState);
-
     if (!newExpandedState) {
       setShowResults(false);
     }
@@ -132,7 +141,7 @@ const SearchControl: React.FC<SearchControlProps> = ({ restaurants, onSearchResu
             backgroundColor: theme.colors.dark[6],
             transition: 'all 0.3s ease',
             height: '50px',
-            width: isExpanded ? '18rem' : '56px',
+            width: isExpanded ? '18rem' : '50px',
             display: 'flex',
             alignItems: 'center',
             overflow: 'visible',

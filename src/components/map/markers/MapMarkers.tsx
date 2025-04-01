@@ -1,27 +1,38 @@
-'use client';
+// Example: components/map/markers/mapMarkers.tsx
 
+import React from 'react';
 import { HappyHourVenue } from 'src/server/db/schema';
 import RestaurantMarker from './RestaurantMarker';
-import UserLocationMarker from './UserLocationMarker';
 
 interface RestaurantMarkersProps {
   restaurants: HappyHourVenue[];
-  selectedRestaurantId?: string | null;
+  selectedRestaurantId: string | null;
+  selectionSource: 'search' | 'marker' | null; 
+  onMarkerSelect: (restaurantId: string | null) => void;
 }
 
-export const RestaurantMarkers: React.FC<RestaurantMarkersProps> = ({ 
+const RestaurantMarkers: React.FC<RestaurantMarkersProps> = ({
   restaurants,
-  selectedRestaurantId 
+  selectedRestaurantId,
+  selectionSource, 
+  onMarkerSelect,
 }) => {
   return (
     <>
-      {restaurants.map((restaurant) => (
-        <RestaurantMarker 
-          key={restaurant.id} 
-          restaurant={restaurant} 
-          isSelected={selectedRestaurantId === restaurant.id}
-        />
-      ))}
+      {restaurants.map((restaurant) => {
+        const isSelected = selectedRestaurantId === restaurant.id;
+        return (
+          <RestaurantMarker
+            key={restaurant.id}
+            restaurant={restaurant}
+            isSelected={isSelected}
+            selectionSource={isSelected ? selectionSource : null}
+            onSelect={onMarkerSelect}
+          />
+        );
+      })}
     </>
   );
 };
+
+export { RestaurantMarkers };

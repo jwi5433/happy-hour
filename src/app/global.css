@@ -1,7 +1,68 @@
-
 .leaflet-container {
   height: 100%;
   width: 100%;
+  position: relative;
+}
+
+.custom-mantine-popup .leaflet-popup-content-wrapper,
+.custom-mantine-popup .leaflet-popup-tip {
+  background: transparent;
+  box-shadow: none !important;
+  border: none !important;
+  padding: 0;
+  margin: 0;
+  border-radius: 0;
+}
+
+.custom-mantine-popup .leaflet-popup-tip-container {
+  display: none;
+}
+
+.custom-mantine-popup .leaflet-popup-content {
+  margin: 0;
+  padding: 0;
+  width: 300px !important;
+  border: none !important;
+  outline: none;
+  display: block;
+  box-sizing: border-box;
+}
+
+.custom-mantine-popup .leaflet-popup-content-wrapper {
+  overflow-x: hidden;
+  max-height: 80vh;
+  -webkit-overflow-scrolling: touch;
+  background: transparent;
+  box-shadow: none !important;
+  border: none !important;   
+  padding: 0;           
+  margin: 0;                
+  border-radius: 0;    
+}
+
+.custom-mantine-popup .mantine-Paper-root {
+  height: auto;
+  max-height: none;
+  width: 100%;
+  display: block;
+}
+
+.custom-mantine-popup .mantine-Text-root {
+  white-space: normal;
+  word-break: break-word;
+  line-height: 1.4;
+}
+
+@media (max-width: 320px) {
+  .custom-mantine-popup .leaflet-popup-content {
+    width: auto !important;
+    max-width: calc(100vw - 40px);
+  }
+
+  .custom-mantine-popup .leaflet-popup-content-wrapper {
+    height: auto;
+    max-height: 85vh;
+  }
 }
 
 .leaflet-control-container {
@@ -42,14 +103,9 @@
 }
 
 .leaflet-fade-anim .leaflet-popup {
-  transition: opacity 0.3s ease, transform 0.3s ease;
-}
-
-@media (max-width: 640px) {
-  .leaflet-popup-content {
-    max-width: 90vw;
-    word-break: break-word;
-  }
+  transition:
+    opacity 0.3s ease,
+    transform 0.3s ease;
 }
 
 .dark-theme-popup .leaflet-popup-content-wrapper,
@@ -57,4 +113,8 @@
   background: transparent;
   box-shadow: none !important;
   border: none !important;
+}
+
+.leaflet-map-pane {
+  position: absolute !important;
 }
