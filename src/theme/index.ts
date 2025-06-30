@@ -1,9 +1,7 @@
 import { createTheme, CSSVariablesResolver } from '@mantine/core';
 
 export const theme = createTheme({
-
   primaryColor: 'blue',
-
   colors: {
     blue: [
       '#e7f5ff',
@@ -42,7 +40,6 @@ export const theme = createTheme({
       '#212529',
     ],
   },
-
   components: {
     Paper: {
       defaultProps: {

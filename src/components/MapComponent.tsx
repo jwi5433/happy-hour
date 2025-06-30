@@ -1,140 +1,126 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { MapContainer, TileLayer } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import { HappyHourVenue } from 'src/server/db/schema';
 import LocationButton from './map/controls/locationButton';
 import LocationTracker from './map/tracking/locationTracker';
 import SearchControl from './map/controls/searchControls';
-import ZoomFilterControl from './map/controls/zoomFilterControls';
-import { UserLocationMarker, RestaurantMarkers } from './map/markers'; 
+import { UserLocationMarker, RestaurantMarkers } from './map/markers';
 import AiChat from './AiChat';
 import ChatButton from './map/controls/chatButton';
 import CustomZoomControl from './map/controls/customZoomControl';
-import L from 'leaflet';
+import L, { Map } from 'leaflet';
+import { Notification } from '@mantine/core';
+import { IconX } from '@tabler/icons-react';
 
-interface SelectionInfo {
-  id: string | null;
-  source: 'search' | 'marker' | null;
-}
-
-interface MapComponentProps {
-  className?: string;
-  restaurants: HappyHourVenue[];
-  loading?: boolean;
-  initialUserPosition?: [number, number] | null;
+interface SelectionRequest {
+  restaurant: HappyHourVenue;
+  marker?: L.Marker;
 }
 
 const MapComponent = ({
   className = '',
   restaurants = [],
-  initialUserPosition = null,
-}: MapComponentProps) => {
-  const defaultCenter: [number, number] = [30.2672, -97.7431];
-  const [userPosition, setUserPosition] = useState<[number, number] | null>(initialUserPosition);
+}: {
+  className?: string;
+  restaurants: HappyHourVenue[];
+}) => {
+  const mapRef = useRef<Map | null>(null);
+  const [userPosition, setUserPosition] = useState<[number, number] | null>(null);
   const [locationError, setLocationError] = useState<string | null>(null);
-  const [visibleRestaurants, setVisibleRestaurants] = useState<HappyHourVenue[]>([]);
-  const [mapCenter, setMapCenter] = useState<[number, number]>(
-    initialUserPosition || defaultCenter
-  );
-  const [mapKey, setMapKey] = useState<number>(0);
   const [isChatOpen, setIsChatOpen] = useState<boolean>(false);
-  const [selectionInfo, setSelectionInfo] = useState<SelectionInfo>({ id: null, source: null });
+  const [selectionRequest, setSelectionRequest] = useState<SelectionRequest | null>(null);
 
   useEffect(() => {
-    if (initialUserPosition) {
-      setUserPosition(initialUserPosition);
-      setMapCenter(initialUserPosition);
-    }
-  }, [initialUserPosition]);
+    const map = mapRef.current;
+    if (!map || !selectionRequest?.restaurant) return;
 
-  useEffect(() => {
-    if (restaurants.length > 0) {
-      setVisibleRestaurants(restaurants.slice(0, 50));
-    }
-  }, [restaurants]);
+    const { restaurant } = selectionRequest;
+    if (!restaurant.latitude || !restaurant.longitude) return;
+
+    const latLng = L.latLng(restaurant.latitude, restaurant.longitude);
+    const zoom = Math.max(map.getZoom(), 16);
+
+    // --- The Definitive Centering Logic ---
+    // 1. Get the pixel coordinates of the target marker
+    const targetPoint = map.project(latLng, zoom);
+
+    // 2. Define the vertical offset (half the popup's height) to move the center up
+    const popupHeight = 350; // Approximate height of your popup
+    const yOffset = popupHeight / 2;
+    const adjustedPoint = targetPoint.subtract([0, yOffset]);
+
+    // 3. Convert the adjusted pixel coordinate back to a geographic coordinate
+    const targetLatLng = map.unproject(adjustedPoint, zoom);
+
+    const onMoveEnd = () => {
+      map.off('moveend', onMoveEnd);
+      // Find the correct marker on the map and open its popup
+      map.eachLayer((layer) => {
+        if (layer instanceof L.Marker && layer.getLatLng().equals(latLng)) {
+          layer.openPopup();
+        }
+      });
+    };
+
+    map.on('moveend', onMoveEnd);
+    map.flyTo(targetLatLng, zoom, { duration: 1.0 });
+  }, [selectionRequest]);
+
+  const handleRestaurantSelect = useCallback((restaurant: HappyHourVenue, marker?: L.Marker) => {
+    setSelectionRequest({ restaurant, marker });
+  }, []);
 
   useEffect(() => {
     delete (L.Icon.Default.prototype as any)._getIconUrl;
     L.Icon.Default.mergeOptions({
-      iconRetinaUrl:
-        'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
-      iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
-      shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
+      iconRetinaUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon-2x.png',
+      iconUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon.png',
+      shadowUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-shadow.png',
     });
   }, []);
 
-  const handleLocationFound = (position: [number, number]) => {
-    setUserPosition(position);
-    const [lat, lng] = position;
-    const isInAustin = lat > 30.05 && lat < 30.55 && lng > -98.05 && lng < -97.45;
-    if (isInAustin) {
-      setMapCenter(position);
-    } else {
-      console.log('User location is outside Austin area');
-    }
-  };
-
-  const handleLocationError = (errorMessage: string) => {
-    setLocationError(errorMessage);
-  };
-
-  const handleLocationRequest = () => {
-    setLocationError(null);
-  };
-
-  const handleMarkerSelection = (restaurantId: string | null) => {
-    setSelectionInfo({ id: restaurantId, source: 'marker' });
-  };
-
-  const handleRestaurantSelectFromSearch = (restaurant: HappyHourVenue) => {
-    setSelectionInfo({ id: restaurant.id, source: 'search' });
-  };
-
   return (
     <div className={className} style={{ height: '100%', width: '100%', position: 'relative' }}>
+      {locationError && (
+        <Notification
+          icon={<IconX size="1.1rem" />}
+          color="red"
+          withCloseButton
+          onClose={() => setLocationError(null)}
+          style={{ position: 'absolute', top: 10, right: 10, zIndex: 1001 }}
+        >
+          {locationError}
+        </Notification>
+      )}
+
       <MapContainer
-        key={mapKey}
-        center={mapCenter}
+        center={[30.2672, -97.7431]}
         zoom={13}
         scrollWheelZoom={true}
         style={{ height: '100%', width: '100%' }}
         className="h-full w-full"
         zoomControl={false}
+        ref={mapRef}
       >
         <TileLayer
-          attribution='© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
 
         <CustomZoomControl position="topright" />
-        <LocationButton onLocationRequest={handleLocationRequest} />
-
+        <LocationButton onLocationRequest={() => setLocationError(null)} />
         <SearchControl
           restaurants={restaurants}
-          onRestaurantSelect={handleRestaurantSelectFromSearch}
+          onRestaurantSelect={(restaurant) => handleRestaurantSelect(restaurant)}
         />
-
-        <LocationTracker
-          onLocationFound={handleLocationFound}
-          onLocationError={handleLocationError}
-        />
-
-        <ZoomFilterControl
-          restaurants={restaurants}
-          setVisibleRestaurants={setVisibleRestaurants}
-          userPosition={userPosition}
-        />
+        <LocationTracker onLocationFound={setUserPosition} onLocationError={setLocationError} />
 
         {userPosition && <UserLocationMarker position={userPosition} />}
 
-        <RestaurantMarkers
-          restaurants={visibleRestaurants}
-          selectedRestaurantId={selectionInfo.id} 
-          selectionSource={selectionInfo.source} 
-          onMarkerSelect={handleMarkerSelection} 
-        />
+        <RestaurantMarkers restaurants={restaurants} onMarkerSelect={handleRestaurantSelect} />
 
         {isChatOpen && <AiChat isOpen={isChatOpen} onClose={() => setIsChatOpen(false)} />}
         <ChatButton onClick={() => setIsChatOpen(!isChatOpen)} />

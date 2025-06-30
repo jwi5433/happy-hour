@@ -44,6 +44,7 @@
     "react-dom": "^18.3.1",
     "react-feather": "^2.0.10",
     "react-leaflet": "^4.2.1",
+    "react-leaflet-markercluster": "^3.0.0-rc1",
     "tabler": "^1.0.0",
     "zod": "^3.23.3"
   },
