@@ -32,10 +32,12 @@ const AiChat: React.FC<AiChatProps> = ({ isOpen, onClose }) => {
     }
   }, [messages]);
 
-  const handleSendMessage = async (): Promise<void> => {
+  const handleSendMessage = async (e: React.FormEvent<HTMLFormElement>): Promise<void> => {
+    e.preventDefault();
     if (!input.trim() || isLoading || !API_KEY) return;
 
-    setMessages((prev) => [...prev, { role: 'user', content: input.trim() }]);
+    const userMessage = input.trim();
+    setMessages((prev) => [...prev, { role: 'user', content: userMessage }]);
     setInput('');
     setIsLoading(true);
 
@@ -54,7 +56,7 @@ const AiChat: React.FC<AiChatProps> = ({ isOpen, onClose }) => {
           'Be informative and approachable without overdoing the personality.',
       });
 
-      const result = await model.generateContent(input);
+      const result = await model.generateContent(userMessage);
       const response = result.response.text();
 
       setMessages((prev) => [...prev, { role: 'assistant', content: response }]);
@@ -75,7 +77,7 @@ const AiChat: React.FC<AiChatProps> = ({ isOpen, onClose }) => {
   if (!isOpen) return null;
 
   return (
-    <div id="chat-container" className="fixed bottom-0 right-4 z-[1000] w-96">
+    <div id="chat-container" className="fixed bottom-0 right-0 sm:right-4 z-[1000] w-full sm:w-96">
       <div className="shadow-xl rounded-lg max-w-lg w-full" 
         style={{ 
           backgroundColor: 'var(--dark-bg-primary)',
@@ -148,7 +150,7 @@ const AiChat: React.FC<AiChatProps> = ({ isOpen, onClose }) => {
         </div>
         
         <div className="p-3 border-t border-gray-600 bg-gray-800">
-          <form className="flex">
+          <form className="flex" onSubmit={handleSendMessage}>
             <input
               type="text"
               value={input}

@@ -10,7 +10,7 @@ import SearchControl from './map/controls/searchControls';
 import { UserLocationMarker, RestaurantMarkers } from './map/markers';
 import AiChat from './AiChat';
 import ChatButton from './map/controls/chatButton';
-import CustomZoomControl from './map/controls/customZoomControl';
+
 import L, { Map } from 'leaflet';
 import { Notification } from '@mantine/core';
 import { IconX } from '@tabler/icons-react';
@@ -23,9 +23,11 @@ interface SelectionRequest {
 const MapComponent = ({
   className = '',
   restaurants = [],
+  loading = false,
 }: {
   className?: string;
   restaurants: HappyHourVenue[];
+  loading?: boolean;
 }) => {
   const mapRef = useRef<Map | null>(null);
   const [userPosition, setUserPosition] = useState<[number, number] | null>(null);
@@ -74,12 +76,22 @@ const MapComponent = ({
   }, []);
 
   useEffect(() => {
-    delete (L.Icon.Default.prototype as any)._getIconUrl;
-    L.Icon.Default.mergeOptions({
-      iconRetinaUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon-2x.png',
-      iconUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon.png',
-      shadowUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-shadow.png',
+    const iconRetinaUrl = 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon-2x.png';
+    const iconUrl = 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon.png';
+    const shadowUrl = 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-shadow.png';
+
+    const iconDefault = L.icon({
+      iconRetinaUrl,
+      iconUrl,
+      shadowUrl,
+      iconSize: [25, 41],
+      iconAnchor: [12, 41],
+      popupAnchor: [1, -34],
+      tooltipAnchor: [16, -28],
+      shadowSize: [41, 41],
     });
+
+    L.Marker.prototype.options.icon = iconDefault;
   }, []);
 
   return (
@@ -110,7 +122,7 @@ const MapComponent = ({
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
 
-        <CustomZoomControl position="topright" />
+        
         <LocationButton onLocationRequest={() => setLocationError(null)} />
         <SearchControl
           restaurants={restaurants}
@@ -120,7 +132,12 @@ const MapComponent = ({
 
         {userPosition && <UserLocationMarker position={userPosition} />}
 
-        <RestaurantMarkers restaurants={restaurants} onMarkerSelect={handleRestaurantSelect} />
+        <RestaurantMarkers
+          restaurants={restaurants}
+          onMarkerSelect={handleRestaurantSelect}
+          selectedRestaurantId={selectionRequest?.restaurant.id ?? null}
+          selectionSource={selectionRequest ? 'map' : null}
+        />
 
         {isChatOpen && <AiChat isOpen={isChatOpen} onClose={() => setIsChatOpen(false)} />}
         <ChatButton onClick={() => setIsChatOpen(!isChatOpen)} />

@@ -102,7 +102,7 @@ const SearchControl: React.FC<SearchControlProps> = ({ restaurants, onRestaurant
             backgroundColor: theme.colors.dark[6],
             transition: 'all 0.3s ease',
             height: '50px',
-            width: isExpanded ? '18rem' : '50px',
+            width: isExpanded ? 'clamp(12rem, 70vw, 18rem)' : '50px',
             display: 'flex',
             alignItems: 'center',
             overflow: 'visible',

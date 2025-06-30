@@ -3,11 +3,8 @@
 
 import { sql } from 'drizzle-orm';
 import {
-  index,
-  integer,
   pgTable,
   timestamp,
-  varchar,
   jsonb,
   doublePrecision,
   text,

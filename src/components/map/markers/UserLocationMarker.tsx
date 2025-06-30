@@ -48,28 +48,32 @@ const UserLocationMarker: React.FC<UserLocationMarkerProps> = ({ position }) => 
   if (!icon) return null;
 
   const handleMouseOver = (e: L.LeafletMouseEvent) => {
-    const element = e.target.getElement();
-    const container = element.querySelector('.marker-container') as HTMLElement | null;
-    if (container) {
-      container.style.transform = 'scale(1.05)';
-      container.style.filter = 'drop-shadow(0 6px 10px rgba(0, 0, 0, 0.3))';
-      container.style.backgroundColor = theme.colors.blue[7];
+    const markerElement = (e.target as L.Marker).getElement();
+    if (markerElement) {
+      const container = markerElement.querySelector('.marker-container') as HTMLElement | null;
+      if (container) {
+        container.style.transform = 'scale(1.05)';
+        container.style.filter = 'drop-shadow(0 6px 10px rgba(0, 0, 0, 0.3))';
+        container.style.backgroundColor = theme.colors.blue[7];
 
-      const svg = container.querySelector('svg') as SVGElement | null;
-      if (svg) svg.style.color = theme.white;
+        const svg = container.querySelector('svg') as SVGElement | null;
+        if (svg) svg.style.color = theme.white;
+      }
     }
   };
 
   const handleMouseOut = (e: L.LeafletMouseEvent) => {
-    const element = e.target.getElement();
-    const container = element.querySelector('.marker-container') as HTMLElement | null;
-    if (container) {
-      container.style.transform = 'scale(1)';
-      container.style.filter = 'drop-shadow(0 4px 8px rgba(0, 0, 0, 0.2))';
-      container.style.backgroundColor = theme.colors.dark[6];
+    const markerElement = (e.target as L.Marker).getElement();
+    if (markerElement) {
+      const container = markerElement.querySelector('.marker-container') as HTMLElement | null;
+      if (container) {
+        container.style.transform = 'scale(1)';
+        container.style.filter = 'drop-shadow(0 4px 8px rgba(0, 0, 0, 0.2))';
+        container.style.backgroundColor = theme.colors.dark[6];
 
-      const svg = container.querySelector('svg') as SVGElement | null;
-      if (svg) svg.style.color = theme.colors.blue[5];
+        const svg = container.querySelector('svg') as SVGElement | null;
+        if (svg) svg.style.color = theme.colors.blue[5];
+      }
     }
   };
 

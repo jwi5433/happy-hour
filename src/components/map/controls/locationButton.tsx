@@ -31,9 +31,10 @@ const LocationButton: React.FC<LocationButtonProps> = ({ onLocationRequest }) =>
           variant="outline"
           color="blue"
           radius="xl"
-          size={55}
-          bg={theme.colors.dark[6]}
+          size="xl"
           style={{
+            width: 'clamp(40px, 10vw, 55px)',
+            height: 'clamp(40px, 10vw, 55px)',
             border: `1px solid ${theme.colors.dark[4]}`,
             transition: 'all 0.3s ease',
           }}

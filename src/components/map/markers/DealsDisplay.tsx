@@ -24,8 +24,8 @@ const DealsDisplay: React.FC<DealsDisplayProps> = ({ deals = null }) => {
     if (!deal.name || !deal.price) return false;
 
     if (typeof deal.price === 'string') {
-      const percentMatch = deal.price.match(/(\d+)%/);
-      if (percentMatch && percentMatch[1]) {
+      const percentMatch = /(\d+)%/.exec(deal.price);
+      if (percentMatch?.[1]) {
         const percentValue = parseInt(percentMatch[1], 10);
 
         if (percentValue > 80) {

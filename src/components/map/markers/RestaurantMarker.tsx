@@ -1,7 +1,8 @@
 'use client';
 
-import { useRef } from 'react';
+
 import { Marker, Popup } from 'react-leaflet';
+import { useRef, useEffect } from 'react';
 import L from 'leaflet';
 import { HappyHourVenue } from 'src/server/db/schema';
 import DealsDisplay from './DealsDisplay';
@@ -23,7 +24,9 @@ import { IconWorld, IconBrandInstagram, IconMap, IconClock } from '@tabler/icons
 
 interface RestaurantMarkerProps {
   restaurant: HappyHourVenue;
-  // REMOVED: isSelected and onSelect props are no longer needed for the popup
+  isSelected: boolean;
+  selectionSource: 'search' | 'marker' | null;
+  onSelect: (restaurant: HappyHourVenue) => void;
 }
 
 const restaurantIconOptions = {
@@ -36,15 +39,29 @@ const restaurantIconOptions = {
 };
 const restaurantIcon = new L.Icon(restaurantIconOptions);
 
-const RestaurantMarker: React.FC<RestaurantMarkerProps> = ({ restaurant }) => {
+const RestaurantMarker: React.FC<RestaurantMarkerProps> = ({
+  restaurant,
+  isSelected,
+  selectionSource,
+  onSelect,
+}) => {
   const theme = useMantineTheme();
+
+  const markerRef = useRef<L.Marker>(null);
+
+  useEffect(() => {
+    if (isSelected && selectionSource === 'search' && markerRef.current) {
+      markerRef.current.openPopup();
+    }
+  }, [isSelected, selectionSource]);
+
+  const position: [number, number] = [restaurant.latitude, restaurant.longitude];
 
   if (!restaurant.latitude || !restaurant.longitude) {
     return null;
   }
-  const position: [number, number] = [restaurant.latitude, restaurant.longitude];
 
-  const happyHours = (restaurant.happyHours as HappyHour[]) || [];
+  const happyHours = (restaurant.happyHours as HappyHour[]) ?? [];
   const rawHappyHours = formatHappyHours(happyHours);
   const happyHoursLines = rawHappyHours
     ? rawHappyHours.split('\n').filter((line) => line.trim() !== '')
@@ -53,17 +70,26 @@ const RestaurantMarker: React.FC<RestaurantMarkerProps> = ({ restaurant }) => {
   const parsedHappyHours = happyHoursLines.map((line) => {
     const parts = line.split('•');
     if (parts.length < 2) return { days: line, times: '' };
-    const days = parts[0]?.replace(/<\/?[^>]+(>|$)/g, '').trim() || '';
-    const times = parts[1]?.replace(/<\/?[^>]+(>|$)/g, '').trim() || '';
+    const days = parts[0]?.replace(/<\/?[^>]+(>|$)/g, '').trim() ?? '';
+    const times = parts[1]?.replace(/<\/?[^>]+(>|$)/g, '').trim() ?? '';
     return { days, times };
   });
 
   return (
-    <Marker position={position} icon={restaurantIcon}>
+    <Marker
+      position={position}
+      icon={restaurantIcon}
+      ref={markerRef}
+      eventHandlers={{
+        click: () => {
+          onSelect(restaurant);
+        },
+      }}
+    >
       {/* This popup is now self-contained. Leaflet handles opening it on click. */}
       {/* autoPanPadding fixes the "cut-off" issue. */}
-      <Popup className="custom-mantine-popup" autoPanPadding={L.point(70, 70)}>
-        <Card p={0} radius="md" bg="dark.6" withBorder={false}>
+      <Popup className="custom-mantine-popup" autoPanPadding={L.point(50, 50)}>
+        <Card shadow="sm" padding="none" radius="md" withBorder>
           <Box
             py="xs"
             px="sm"
