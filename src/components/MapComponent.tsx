@@ -122,7 +122,6 @@ const MapComponent = ({
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
 
-        
         <LocationButton onLocationRequest={() => setLocationError(null)} />
         <SearchControl
           restaurants={restaurants}
@@ -136,7 +135,7 @@ const MapComponent = ({
           restaurants={restaurants}
           onMarkerSelect={handleRestaurantSelect}
           selectedRestaurantId={selectionRequest?.restaurant.id ?? null}
-          selectionSource={selectionRequest ? 'map' : null}
+          selectionSource={selectionRequest ? 'marker' : null}
         />
 
         {isChatOpen && <AiChat isOpen={isChatOpen} onClose={() => setIsChatOpen(false)} />}
