@@ -27,12 +27,7 @@ export default function Map({
 }: MapProps) {
   return (
     <Box className={className} style={{ height: '100%', width: '100%' }}>
-      <MapComponent
-        className="h-full w-full"
-        restaurants={restaurants}
-        loading={loading}
-        initialUserPosition={initialUserPosition}
-      />
+      <MapComponent className="h-full w-full" restaurants={restaurants} loading={loading} />
     </Box>
   );
 }

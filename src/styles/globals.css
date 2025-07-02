@@ -1,0 +1,26 @@
+.custom-mantine-popup .leaflet-popup-content-wrapper {
+  padding: 0;
+  background: transparent;
+  box-shadow: none;
+  border: none !important;
+  border-radius: var(--mantine-radius-md);
+  overflow: hidden !important;
+}
+
+.custom-mantine-popup .leaflet-popup-content {
+  margin: 0 !important;
+  width: auto !important;
+  height: auto !important;
+  overflow: visible !important;
+}
+
+.custom-mantine-popup .leaflet-popup-tip-container {
+  display: none;
+}
+
+@media (max-width: 480px) {
+  .custom-mantine-popup .leaflet-popup-content .mantine-Card-root {
+    width: calc(100vw - 50px) !important;
+    max-height: 70vh !important;
+  }
+}
